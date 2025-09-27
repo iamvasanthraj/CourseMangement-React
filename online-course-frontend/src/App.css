@@ -1,289 +1,78 @@
-/* Modern CSS Reset */
+/* ===== CSS Variables & Global Styles ===== */
+:root {
+  --primary: #4361ee;
+  --primary-dark: #3a56d4;
+  --secondary: #7209b7;
+  --success: #4cc9f0;
+  --danger: #f72585;
+  --warning: #f8961e;
+  --info: #4895ef;
+  --light: #f8f9fa;
+  --dark: #212529;
+  --gray: #6c757d;
+  --light-gray: #e9ecef;
+  --border-radius: 12px;
+  --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --box-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s ease;
+  --gradient: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-:root {
-  --primary-color: #4361ee;
-  --secondary-color: #3a0ca3;
-  --success-color: #4cc9f0;
-  --danger-color: #f72585;
-  --warning-color: #f8961e;
-  --light-color: #f8f9fa;
-  --dark-color: #212529;
-  --gray-color: #6c757d;
-  --border-radius: 12px;
-  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
-}
-
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--dark);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  line-height: 1.6;
-  color: var(--dark-color);
 }
 
-/* Container Styles */
-.login-container, .signup-container {
+/* ===== Enhanced Auth Styles ===== */
+.auth-container {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
 }
 
-.login-form, .signup-form {
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,1000 1000,0 1000,1000"/></svg>');
+  background-size: cover;
+}
+
+.auth-glass {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 40px;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 3rem;
   width: 100%;
   max-width: 450px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.login-form h2, .signup-form h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--secondary-color);
-  font-size: 2rem;
-  font-weight: 600;
-}
-
-/* Form Styles */
-.form-group {
-  margin-bottom: 25px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
+  z-index: 1;
+  animation: authSlideUp 0.6s ease;
 }
 
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: var(--dark-color);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 15px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: var(--transition);
-  background: #fff;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-  transform: translateY(-2px);
-}
-
-/* Button Styles */
-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  padding: 15px 30px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: var(--transition);
-  width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-button:disabled {
-  background: var(--gray-color);
-  transform: none;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-.secondary-btn {
-  background: transparent;
-  border: 2px solid var(--primary-color);
-  color: var(--primary-color);
-}
-
-.secondary-btn:hover {
-  background: var(--primary-color);
-  color: white;
-}
-
-/* Error Message */
-.error-message {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 25px;
-  text-align: center;
-  font-weight: 500;
-}
-
-/* Links */
-p {
-  text-align: center;
-  margin-top: 25px;
-  color: var(--gray-color);
-}
-
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 600;
-  transition: var(--transition);
-}
-
-a:hover {
-  color: var(--secondary-color);
-  text-decoration: underline;
-}
-
-/* Dashboard Styles */
-.dashboard {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 30px;
-}
-
-.dashboard header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 25px 40px;
-  border-radius: var(--border-radius);
-  margin-bottom: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.dashboard h1 {
-  color: var(--secondary-color);
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.dashboard h2 {
-  color: var(--secondary-color);
-  margin-bottom: 25px;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-/* Section Styles */
-.instructor-section, .courses-section, .enrollments-section {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 30px;
-  border-radius: var(--border-radius);
-  margin-bottom: 30px;
-  box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Course Grid */
-.courses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 25px;
-  margin-top: 20px;
-}
-
-.course-card {
-  background: white;
-  padding: 25px;
-  border-radius: var(--border-radius);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  transition: var(--transition);
-  border-left: 4px solid var(--primary-color);
-}
-
-.course-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-}
-
-.course-card h3 {
-  color: var(--secondary-color);
-  margin-bottom: 10px;
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.course-card p {
-  color: var(--gray-color);
-  margin: 10px 0 20px;
-  text-align: left;
-  line-height: 1.5;
-}
-
-.course-card button {
-  width: auto;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-}
-
-/* Form in Dashboard */
-.instructor-section form {
-  display: grid;
-  gap: 20px;
-  max-width: 500px;
-}
-
-.instructor-section textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-/* Message Styles */
-.message {
-  padding: 15px 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-  text-align: center;
-  font-weight: 600;
-  animation: slideIn 0.3s ease-out;
-}
-
-.success-message {
-  background: linear-gradient(135deg, #4cc9f0, #4895ef);
-  color: white;
-}
-
-.error-message {
-  background: linear-gradient(135deg, #f72585, #b5179e);
-  color: white;
-}
-
-@keyframes slideIn {
+@keyframes authSlideUp {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -291,214 +80,1015 @@ a:hover {
   }
 }
 
-/* User Info */
-.user-info h1 {
-  margin-bottom: 5px;
+.auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
 }
 
-.user-role {
-  color: var(--gray-color);
+.auth-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--gradient);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+}
+
+.auth-header h2 {
+  font-size: 2.2rem;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: var(--gray);
+  font-size: 1.1rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-form-group {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e1e5ee;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  position: relative;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  transform: translateY(-2px);
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray);
+  z-index: 2;
+  font-size: 1.2rem;
+}
+
+.auth-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
   font-size: 0.9rem;
-  font-weight: 600;
 }
 
-/* Section Headers */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--gray);
+}
+
+.remember-me input {
+  width: auto;
+}
+
+.forgot-password {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.forgot-password:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--gradient);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.auth-btn-loading {
+  position: relative;
+  color: transparent;
+}
+
+.auth-btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s ease infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  color: var(--gray);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e1e5ee;
+}
+
+.auth-divider span {
+  padding: 0 1rem;
+  font-size: 0.9rem;
+}
+
+.social-auth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  border: 2px solid #e1e5ee;
+  border-radius: 10px;
+  background: white;
+  color: var(--dark);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.social-btn.google { color: #db4437; }
+.social-btn.github { color: #333; }
+
+.auth-footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e1e5ee;
+  color: var(--gray);
+}
+
+.auth-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  transition: var(--transition);
+}
+
+.auth-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* ===== Enhanced Error/Success Messages ===== */
+.auth-message {
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-message.error {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+}
+
+.auth-message.success {
+  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  color: white;
+}
+
+/* ===== Password Strength Indicator ===== */
+.password-strength {
+  margin-top: 0.5rem;
+}
+
+.strength-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: #e1e5ee;
+  margin-bottom: 0.3rem;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0%;
+  transition: all 0.3s ease;
+}
+
+.strength-fill.weak { width: 33%; background: #ff6b6b; }
+.strength-fill.medium { width: 66%; background: #feca57; }
+.strength-fill.strong { width: 100%; background: #48dbfb; }
+
+.strength-text {
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+/* ===== Role Selection Enhanced ===== */
+.role-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.role-option {
+  position: relative;
+}
+
+.role-option input {
+  display: none;
+}
+
+.role-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  border: 2px solid #e1e5ee;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  background: white;
+}
+
+.role-option input:checked + .role-label {
+  border-color: var(--primary);
+  background: rgba(67, 97, 238, 0.05);
+  transform: translateY(-2px);
+}
+
+.role-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-name {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.role-description {
+  font-size: 0.8rem;
+  color: var(--gray);
+  margin-top: 0.3rem;
+}
+
+/* ===== Responsive Auth Design ===== */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1rem;
+  }
+  
+  .auth-glass {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .social-auth {
+    grid-template-columns: 1fr;
+  }
+  
+  .role-selection {
+    grid-template-columns: 1fr;
+  }
+  
+  .auth-options {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-glass {
+    padding: 1.5rem;
+  }
+  
+  .auth-header h2 {
+    font-size: 1.8rem;
+  }
+  
+  .auth-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+}
+
+/* ===== Floating Animation ===== */
+.auth-floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+} 
+
+/* ===== Utility Classes ===== */
+.text-center { text-align: center; }
+.text-gradient { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.glow-text { text-shadow: 0 0 20px rgba(67, 97, 238, 0.3); }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* ===== Loading States ===== */
+.quantum-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: var(--gray);
+}
+
+/* ===== Message/Alert Styles ===== */
+.quantum-message {
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+
+.quantum-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.quantum-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Glass Morphism Effect ===== */
+.quantum-glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--border-radius);
+}
+
+/* ===== Card Components ===== */
+.quantum-card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: var(--transition);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quantum-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.quantum-card.quantum-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.quantum-card.quantum-hover-lift:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.quantum-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.quantum-card-header h3 {
+  font-size: 1.3rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.quantum-card-description {
+  color: var(--gray);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.quantum-card-details {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.quantum-card-details .price {
+  font-weight: bold;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.quantum-card-details .instructor {
+  color: var(--gray);
+  font-style: italic;
+}
+
+.quantum-card-details .rating {
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.quantum-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ===== Badges & Tags ===== */
+.quantum-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  background: var(--gradient);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quantum-tag {
+  padding: 0.2rem 0.6rem;
+  background: var(--light-gray);
+  color: var(--gray);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ===== Button Styles ===== */
+.quantum-btn {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.quantum-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.quantum-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.quantum-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s;
+}
+
+.quantum-btn:hover::before {
+  left: 100%;
+}
+
+.quantum-action-btn {
+  flex: 1;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.quantum-btn.quantum-enroll {
+  background: var(--success);
+  color: white;
+}
+
+.quantum-btn.quantum-unenroll {
+  background: var(--danger);
+  color: white;
+}
+
+.quantum-btn.quantum-rate {
+  background: var(--warning);
+  color: white;
+}
+
+.quantum-btn-secondary {
+  background: var(--gray);
+  color: white;
+}
+
+/* ===== Form Styles ===== */
+.quantum-form-group {
+  margin-bottom: 1rem;
+}
+
+.quantum-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.quantum-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: white;
+}
+
+.quantum-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.quantum-input::placeholder {
+  color: #adb5bd;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* ===== Dashboard Layout ===== */
+.quantum-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.quantum-user-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.quantum-user-info h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.quantum-user-role {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* ===== Courses Section ===== */
+.quantum-courses-section {
+  margin: 2rem 0;
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.course-count, .enrollment-count {
-  background: var(--primary-color);
-  color: white;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+.section-header h2 {
+  font-size: 1.8rem;
+  margin: 0;
 }
 
-/* Course Header */
-.course-header {
+.quantum-filters {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.badge {
-  background: var(--success-color);
-  color: white;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-/* Course Actions */
-.course-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.enroll-btn {
-  background: linear-gradient(135deg, #4cc9f0, #4895ef);
-}
-
-.secondary-btn {
-  background: transparent;
-  border: 2px solid var(--primary-color);
-  color: var(--primary-color);
-  width: auto;
-}
-
-.danger-btn {
-  background: linear-gradient(135deg, #f72585, #b5179e);
-  width: auto;
-  padding: 8px 15px;
-  font-size: 0.8rem;
-}
-
-.complete-btn {
-  background: linear-gradient(135deg, #4ade80, #22c55e);
-  width: auto;
-  padding: 8px 15px;
-  font-size: 0.8rem;
-}
-
-/* Enrollment Card - UPDATED VERSION */
-.enrollment-card {
-  background: white;
-  padding: 20px;
+.quantum-filter-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--light-gray);
   border-radius: var(--border-radius);
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
-  transition: var(--transition);
+  background: white;
+  font-size: 0.9rem;
 }
 
-.enrollment-card:hover {
-  transform: translateX(5px);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+.quantum-counter {
+  background: var(--primary);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ===== Grid Layout ===== */
+.quantum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* ===== Enrollments Section ===== */
+.quantum-enrollments-section {
+  margin: 3rem 0;
+}
+
+.quantum-enrollments-list {
+  display: grid;
+  gap: 1rem;
 }
 
 .enrollment-info {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.course-title {
-  font-weight: 600;
-  color: var(--secondary-color);
-  font-size: 1.1rem;
-}
-
-.enrollment-date {
-  color: var(--gray-color);
-  font-size: 0.8rem;
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .enrollment-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .status {
-  padding: 5px 15px;
+  padding: 0.3rem 0.8rem;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status.in-progress {
-  background: var(--warning-color);
-  color: white;
 }
 
 .status.completed {
-  background: var(--success-color);
-  color: white;
+  background: #d4edda;
+  color: #155724;
 }
 
-/* Empty State */
+.status.in-progress {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* ===== Modal Styles ===== */
+.quantum-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.quantum-modal {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.quantum-stars {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.quantum-star {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: var(--transition);
+  opacity: 0.6;
+}
+
+.quantum-star.active,
+.quantum-star:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* ===== Login/Signup Styles ===== */
+.login-container,
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.login-form,
+.signup-form {
+  background: white;
+  padding: 3rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  width: 100%;
+  max-width: 450px;
+}
+
+.login-form h2,
+.signup-form h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--primary);
+  font-size: 2rem;
+}
+
+.error-message {
+  background: var(--danger);
+  color: white;
+  padding: 0.8rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ===== Empty States ===== */
 .empty-state {
   text-align: center;
-  padding: 40px;
-  color: var(--gray-color);
+  padding: 3rem;
+  color: var(--gray);
+  font-size: 1.1rem;
 }
 
-.empty-state p {
-  margin: 10px 0;
-}
-
-/* Loading */
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: var(--gray-color);
-  font-style: italic;
-}
-
-/* Logout Button */
-.logout-btn {
-  width: auto;
-  background: linear-gradient(135deg, #f72585, #b5179e);
-}
-
-/* Loading Animation */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-.loading-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* Responsive Design */
+/* ===== Responsive Design ===== */
 @media (max-width: 768px) {
-  .dashboard {
-    padding: 15px;
+  .quantum-dashboard {
+    padding: 1rem;
   }
   
-  .dashboard header {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .courses-grid {
+  .quantum-grid {
     grid-template-columns: 1fr;
   }
   
-  .login-form, .signup-form {
-    margin: 20px;
-    padding: 30px 25px;
-  }
-  
-  .enrollment-card {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .enrollment-actions {
-    flex-direction: column;
-    gap: 10px;
+  .form-row {
+    grid-template-columns: 1fr;
   }
   
   .section-header {
     flex-direction: column;
-    gap: 10px;
-    text-align: center;
+    align-items: flex-start;
   }
+  
+  .quantum-filters {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .quantum-card-actions {
+    flex-direction: column;
+  }
+  
+  .quantum-action-btn {
+    min-width: auto;
+  }
+  
+  .enrollment-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .login-form,
+  .signup-form {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .quantum-user-info h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quantum-modal {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
+
+/* ===== Animation Classes ===== */
+.quantum-bounce {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ===== Instructor Specific Styles ===== */
+.instructor-actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.instructor-actions .quantum-btn {
+  flex: 1;
+}
+
+.quantum-card-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ===== Course Card Specific Enhancements ===== */
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.category-badge {
+  background: var(--secondary);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ===== Enhanced Focus States for Accessibility ===== */
+.quantum-btn:focus-visible,
+.quantum-input:focus-visible,
+.quantum-star:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .quantum-btn,
+  .enrollment-actions,
+  .quantum-card-actions {
+    display: none !important;
+  }
+  
+  .quantum-card {
+    box-shadow: none;
+    border: 1px solid var(--gray);
+  }
+  
 }

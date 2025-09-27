@@ -1,252 +1,655 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { coursesAPI, enrollmentAPI } from '../services/api'
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { coursesAPI, enrollmentAPI, ratingAPI } from '../services/api';
 
 const Dashboard = () => {
-  const { user } = useAuth() // Remove logout from here
-  const [courses, setCourses] = useState([])
-  const [enrollments, setEnrollments] = useState([])
-  const [newCourse, setNewCourse] = useState({ title: '', description: '' })
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState({ type: '', text: '' })
+  const { user } = useAuth();
+  const [courses, setCourses] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
+  const [newCourse, setNewCourse] = useState({ 
+    title: '', 
+    description: '', 
+    category: 'BACKEND', 
+    price: 0,
+    batch: 'New Batch'
+  });
+  const [editingCourse, setEditingCourse] = useState(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [rating, setRating] = useState({ stars: 5, comment: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [filter, setFilter] = useState('ALL');
 
-  useEffect(() => {
-    loadCourses()
-    if (user?.role === 'STUDENT') {
-      loadEnrollments()
-    }
-  }, [user])
+  const categories = ['ALL', 'BACKEND', 'FRONTEND', 'CYBERSECURITY', 'DATABASE', 'MOBILE', 'DEVOPS'];
+  const batches = ['New Batch', 'Ongoing', 'Completed'];
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text })
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000)
-  }
+  const showMessage = useCallback((type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  }, []);
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
-      setLoading(true)
-      const response = await coursesAPI.getAll()
-      setCourses(response.data)
+      setLoading(true);
+      const response = await coursesAPI.getAll();
+      const coursesData = Array.isArray(response?.data) ? response.data : 
+                         Array.isArray(response) ? response : [];
+      setCourses(coursesData);
     } catch (error) {
-      console.error('Error loading courses:', error)
-      showMessage('error', 'Failed to load courses')
+      console.error('Error loading courses:', error);
+      showMessage('error', 'Failed to load courses');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [showMessage]);
 
-  const loadEnrollments = async () => {
+  const loadEnrollments = useCallback(async () => {
+    if (!user?.userId) return;
+
     try {
-      const response = await enrollmentAPI.getStudentEnrollments(user.userId)
-      setEnrollments(response.data)
+      const response = await enrollmentAPI.getStudentEnrollments(user.userId);
+      const enrollmentsData = Array.isArray(response?.data) ? response.data : 
+                             Array.isArray(response) ? response : [];
+      
+      const enrollmentsWithCourses = await Promise.all(
+        enrollmentsData.map(async (enrollment) => {
+          if (!enrollment?.courseId) return null;
+
+          try {
+            const courseResponse = await coursesAPI.getById(enrollment.courseId);
+            const courseData = courseResponse?.data || courseResponse;
+            
+            return {
+              ...enrollment,
+              course: courseData,
+              enrollmentId: enrollment.enrollmentId || enrollment.id
+            };
+          } catch (error) {
+            console.error('Error loading course details:', error);
+            return {
+              ...enrollment,
+              course: { id: enrollment.courseId, title: 'Course not available' },
+              enrollmentId: enrollment.enrollmentId || enrollment.id
+            };
+          }
+        })
+      );
+      
+      setEnrollments(enrollmentsWithCourses.filter(Boolean));
     } catch (error) {
-      console.error('Error loading enrollments:', error)
-      showMessage('error', 'Failed to load enrollments')
+      console.error('Error loading enrollments:', error);
+      showMessage('error', 'Failed to load enrollments');
     }
-  }
+  }, [user?.userId, showMessage]);
 
   const handleCreateCourse = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    if (!user?.userId) {
+      showMessage('error', 'User not authenticated');
+      return;
+    }
+
     try {
-      setLoading(true)
+      setLoading(true);
       await coursesAPI.create({
         ...newCourse,
+        instructorName: user.username,
         instructorId: user.userId
-      })
-      setNewCourse({ title: '', description: '' })
-      showMessage('success', 'Course created successfully!')
-      loadCourses()
+      });
+      setNewCourse({ title: '', description: '', category: 'BACKEND', price: 0, batch: 'New Batch' });
+      showMessage('success', 'Course created successfully!');
+      await loadCourses();
     } catch (error) {
-      console.error('Error creating course:', error)
-      showMessage('error', error.response?.data || 'Failed to create course')
+      showMessage('error', error.response?.data?.message || error.response?.data || 'Failed to create course');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const handleUpdateCourse = async (e) => {
+    e.preventDefault();
+    if (!editingCourse?.id) return;
+
+    try {
+      setLoading(true);
+      await coursesAPI.update(editingCourse.id, {
+        title: editingCourse.title,
+        description: editingCourse.description,
+        category: editingCourse.category,
+        price: editingCourse.price,
+        batch: editingCourse.batch
+      });
+      setEditingCourse(null);
+      showMessage('success', 'Course updated successfully!');
+      await loadCourses();
+    } catch (error) {
+      showMessage('error', error.response?.data?.message || error.response?.data || 'Failed to update course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCourse = async (courseId) => {
+    if (!courseId) return;
+
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        await coursesAPI.delete(courseId);
+        showMessage('success', 'Course deleted successfully!');
+        await loadCourses();
+      } catch (error) {
+        showMessage('error', 'Failed to delete course');
+      }
+    }
+  };
 
   const handleEnroll = async (courseId) => {
+    if (!user?.userId || !courseId) return;
+
     try {
-      setLoading(true)
+      setLoading(true);
       await enrollmentAPI.enroll({
         studentId: user.userId,
         courseId: courseId
-      })
-      showMessage('success', 'Enrolled successfully!')
-      loadEnrollments()
+      });
+      showMessage('success', 'Enrolled successfully!');
+      await loadEnrollments();
+      await loadCourses();
     } catch (error) {
-      console.error('Error enrolling:', error)
-      showMessage('error', error.response?.data || 'Failed to enroll in course')
+      showMessage('error', error.response?.data?.message || error.response?.data || 'Failed to enroll in course');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const handleMarkCompleted = async (enrollmentId) => {
-    try {
-      await enrollmentAPI.markCompleted(enrollmentId)
-      showMessage('success', 'Course marked as completed!')
-      loadEnrollments()
-    } catch (error) {
-      console.error('Error marking as completed:', error)
-      showMessage('error', 'Failed to update course status')
-    }
-  }
+  };
 
   const handleUnenroll = async (enrollmentId) => {
-    try {
-      await enrollmentAPI.unenroll(enrollmentId)
-      showMessage('success', 'Unenrolled from course')
-      loadEnrollments()
-    } catch (error) {
-      console.error('Error unenrolling:', error)
-      showMessage('error', 'Failed to unenroll')
+    if (!enrollmentId) {
+      showMessage('error', 'Invalid enrollment ID');
+      return;
     }
+
+    if (!window.confirm('Are you sure you want to unenroll from this course?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await enrollmentAPI.unenroll(enrollmentId);
+      showMessage('success', 'Unenrolled successfully!');
+      await loadEnrollments();
+      await loadCourses();
+    } catch (error) {
+      console.error('Unenroll error:', error);
+      if (error.response?.status === 404) {
+        showMessage('error', 'Enrollment not found. Refreshing list...');
+        await loadEnrollments();
+      } else {
+        showMessage('error', error.response?.data?.message || error.response?.data || 'Failed to unenroll');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRateCourse = async (course) => {
+    if (!course?.id) return;
+    setSelectedCourse(course);
+    setShowRatingModal(true);
+  };
+
+  const submitRating = async () => {
+    if (!selectedCourse?.id || !user?.userId) return;
+
+    try {
+      await ratingAPI.rate({
+        stars: rating.stars,
+        comment: rating.comment,
+        studentId: user.userId,
+        courseId: selectedCourse.id
+      });
+      setShowRatingModal(false);
+      setRating({ stars: 5, comment: '' });
+      setSelectedCourse(null);
+      showMessage('success', 'Rating submitted successfully!');
+      await loadCourses();
+    } catch (error) {
+      showMessage('error', error.response?.data?.message || error.response?.data || 'Failed to submit rating');
+    }
+  };
+
+  const isEnrolled = useCallback((courseId) => {
+    return enrollments.some(e => e.courseId === courseId);
+  }, [enrollments]);
+
+  const getEnrollmentId = useCallback((courseId) => {
+    const enrollment = enrollments.find(e => e.courseId === courseId);
+    return enrollment?.enrollmentId || enrollment?.id;
+  }, [enrollments]);
+
+  const canRateCourse = useCallback((courseId) => {
+    const enrollment = enrollments.find(e => e.courseId === courseId);
+    return enrollment && enrollment.completed;
+  }, [enrollments]);
+
+  const filteredCourses = filter === 'ALL' 
+    ? courses 
+    : courses.filter(course => course.category === filter);
+
+  const availableCourses = user?.role === 'STUDENT' 
+    ? filteredCourses.filter(course => !isEnrolled(course.id))
+    : filteredCourses;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeData = async () => {
+      if (isMounted) {
+        await loadCourses();
+        if (user?.role === 'STUDENT') {
+          await loadEnrollments();
+        }
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, loadCourses, loadEnrollments]);
+
+  if (!user) {
+    return <div className="quantum-loading">Please log in to access the dashboard.</div>;
   }
 
   return (
-    <div className="dashboard">
-     <header>
-        <div className="user-info">
-          <h1>Welcome back, {user?.username}! 👋</h1>
-          <p className="user-role">Role: {user?.role}</p>
-        </div>
-        {/* REMOVE THIS LOGOUT BUTTON - it's already in Navigation */}
+    <div className="quantum-dashboard">
+      <header className="quantum-user-info">
+        <h1 className="quantum-glow-text">Welcome back, {user?.username}! 👋</h1>
+        <p className="quantum-user-role">Role: {user?.role}</p>
       </header>
 
-      {/* Message Display */}
       {message.text && (
-        <div className={`message ${message.type}-message`}>
+        <div className={`quantum-message quantum-${message.type}`} role="alert">
           {message.text}
         </div>
       )}
 
       {user?.role === 'INSTRUCTOR' && (
-        <div className="instructor-section">
-          <h2>🎯 Create New Course</h2>
-          <form onSubmit={handleCreateCourse}>
-            <div className="form-group">
-              <input
-                type="text"
-                placeholder="Course Title"
-                value={newCourse.title}
-                onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+        <div className="quantum-glass quantum-card quantum-bounce">
+          <h2 className="quantum-text-gradient">🎯 {editingCourse ? 'Edit Course' : 'Create New Course'}</h2>
+          <form onSubmit={editingCourse ? handleUpdateCourse : handleCreateCourse}>
+            <div className="form-row">
+              <div className="quantum-form-group">
+                <label htmlFor="course-title">Course Title</label>
+                <input
+                  id="course-title"
+                  type="text"
+                  className="quantum-input"
+                  placeholder="Course Title"
+                  value={editingCourse ? editingCourse.title : newCourse.title}
+                  onChange={(e) => editingCourse 
+                    ? setEditingCourse({...editingCourse, title: e.target.value})
+                    : setNewCourse({...newCourse, title: e.target.value})
+                  }
+                  required
+                />
+              </div>
+              <div className="quantum-form-group">
+                <label htmlFor="course-category">Category</label>
+                <select
+                  id="course-category"
+                  className="quantum-input"
+                  value={editingCourse ? editingCourse.category : newCourse.category}
+                  onChange={(e) => editingCourse
+                    ? setEditingCourse({...editingCourse, category: e.target.value})
+                    : setNewCourse({...newCourse, category: e.target.value})
+                  }
+                  required
+                >
+                  {categories.filter(cat => cat !== 'ALL').map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="form-row">
+              <div className="quantum-form-group">
+                <label htmlFor="course-price">Price ($)</label>
+                <input
+                  id="course-price"
+                  type="number"
+                  className="quantum-input"
+                  placeholder="Price ($)"
+                  step="0.01"
+                  min="0"
+                  value={editingCourse ? editingCourse.price : newCourse.price}
+                  onChange={(e) => editingCourse
+                    ? setEditingCourse({...editingCourse, price: parseFloat(e.target.value) || 0})
+                    : setNewCourse({...newCourse, price: parseFloat(e.target.value) || 0})
+                  }
+                  required
+                />
+              </div>
+              <div className="quantum-form-group">
+                <label htmlFor="course-batch">Batch</label>
+                <select
+                  id="course-batch"
+                  className="quantum-input"
+                  value={editingCourse ? editingCourse.batch : newCourse.batch}
+                  onChange={(e) => editingCourse
+                    ? setEditingCourse({...editingCourse, batch: e.target.value})
+                    : setNewCourse({...newCourse, batch: e.target.value})
+                  }
+                >
+                  {batches.map(batch => (
+                    <option key={batch} value={batch}>{batch}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="quantum-form-group">
+              <label htmlFor="course-description">Course Description</label>
+              <textarea
+                id="course-description"
+                className="quantum-input"
+                placeholder="Course Description"
+                value={editingCourse ? editingCourse.description : newCourse.description}
+                onChange={(e) => editingCourse
+                  ? setEditingCourse({...editingCourse, description: e.target.value})
+                  : setNewCourse({...newCourse, description: e.target.value})
+                }
+                rows="4"
                 required
               />
             </div>
-            <div className="form-group">
-              <textarea
-                placeholder="Course Description"
-                value={newCourse.description}
-                onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
-                rows="4"
-              />
+
+            <div className="form-actions">
+              <button type="submit" className="quantum-btn" disabled={loading}>
+                {loading ? '⏳' : editingCourse ? '💾 Update Course' : '🚀 Create Course'}
+              </button>
+              {editingCourse && (
+                <button 
+                  type="button" 
+                  className="quantum-btn quantum-btn-secondary"
+                  onClick={() => setEditingCourse(null)}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
-            <button type="submit" disabled={loading}>
-              {loading ? '⏳ Creating...' : '🚀 Create Course'}
-            </button>
           </form>
         </div>
       )}
 
-      <div className="courses-section">
+      <div className="quantum-courses-section">
         <div className="section-header">
-          <h2>📚 Available Courses</h2>
-          <span className="course-count">{courses.length} courses available</span>
+          <h2 className="quantum-text-gradient">📚 {user?.role === 'STUDENT' ? 'Available Courses' : 'All Courses'}</h2>
+          <div className="quantum-filters">
+            <label htmlFor="category-filter">Filter by category:</label>
+            <select 
+              id="category-filter" 
+              className="quantum-filter-select"
+              value={filter} 
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+            <span className="quantum-counter">{availableCourses.length} courses</span>
+          </div>
         </div>
         
         {loading ? (
-          <div className="loading">Loading courses...</div>
+          <div className="quantum-loading" aria-live="polite">Loading courses...</div>
         ) : (
-          <div className="courses-grid">
-            {courses.map(course => (
-              <div key={course.id} className="course-card">
-                <div className="course-header">
-                  <h3>{course.title}</h3>
-                  {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
-                    <span className="badge">Your Course</span>
-                  )}
-                </div>
-                <p>{course.description || 'No description provided.'}</p>
-                <div className="course-actions">
-                  {user?.role === 'STUDENT' && (
-                    <button 
-                      onClick={() => handleEnroll(course.id)}
-                      disabled={loading}
-                      className="enroll-btn"
-                    >
-                      {loading ? '⏳' : '📝 Enroll'}
-                    </button>
-                  )}
-                  {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
-                    <button className="secondary-btn">
-                      ✏️ Edit
-                    </button>
-                  )}
-                </div>
-              </div>
+          <div className="quantum-grid">
+            {availableCourses.map(course => (
+              <CourseCard 
+                key={course.id}
+                course={course}
+                user={user}
+                isEnrolled={isEnrolled(course.id)}
+                enrollmentId={getEnrollmentId(course.id)}
+                canRate={canRateCourse(course.id)}
+                onEnroll={handleEnroll}
+                onUnenroll={handleUnenroll}
+                onRate={handleRateCourse}
+                onDelete={handleDeleteCourse}
+                onEdit={setEditingCourse}
+                loading={loading}
+              />
             ))}
           </div>
         )}
         
-        {courses.length === 0 && !loading && (
+        {availableCourses.length === 0 && !loading && (
           <div className="empty-state">
-            <p>No courses available yet.</p>
-            {user?.role === 'INSTRUCTOR' && (
-              <p>Create the first course to get started!</p>
-            )}
+            <p>No courses found in {filter} category.</p>
           </div>
         )}
       </div>
 
       {user?.role === 'STUDENT' && (
-        <div className="enrollments-section">
-          <div className="section-header">
-            <h2>🎓 My Enrollments</h2>
-            <span className="enrollment-count">{enrollments.length} enrolled</span>
-          </div>
-          
-          {enrollments.length === 0 ? (
-            <div className="empty-state">
-              <p>You haven't enrolled in any courses yet.</p>
-              <p>Browse the available courses above and start learning!</p>
-            </div>
-          ) : (
-            <div className="enrollments-list">
-              {enrollments.map(enrollment => (
-                <div key={enrollment.id} className="enrollment-card">
-                  <div className="enrollment-info">
-                    <span className="course-title">{enrollment.course?.title}</span>
-                    <span className="enrollment-date">
-                      Enrolled on: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="enrollment-actions">
-                    <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
-                      {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
-                    </span>
-                    {!enrollment.completed && (
-                      <button 
-                        onClick={() => handleMarkCompleted(enrollment.id)}
-                        className="complete-btn"
-                      >
-                        Mark Complete
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => handleUnenroll(enrollment.id)}
-                      className="danger-btn"
-                    >
-                      Unenroll
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <EnrollmentsSection 
+          enrollments={enrollments}
+          loading={loading}
+          onUnenroll={handleUnenroll}
+          onRate={handleRateCourse}
+          canRateCourse={canRateCourse}
+        />
+      )}
+
+      {showRatingModal && (
+        <RatingModal 
+          course={selectedCourse}
+          rating={rating}
+          onRatingChange={setRating}
+          onSubmit={submitRating}
+          onClose={() => setShowRatingModal(false)}
+        />
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+// Updated CourseCard component with quantum CSS classes
+const CourseCard = React.memo(({ course, user, isEnrolled, enrollmentId, canRate, onEnroll, onUnenroll, onRate, onDelete, onEdit, loading }) => {
+  if (!course) return null;
+
+  return (
+    <div className="quantum-card quantum-hover-lift quantum-3d">
+      <div className="quantum-card-header">
+        <div>
+          <h3 className="quantum-glow-text">{course.title}</h3>
+          <span className="quantum-badge">{course.category}</span>
+        </div>
+        <div className="quantum-card-meta">
+          <span className="quantum-tag">{course.batch}</span>
+          {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
+            <span className="quantum-badge quantum-enroll">Your Course</span>
+          )}
+        </div>
+      </div>
+      
+      <p className="quantum-card-description">{course.description}</p>
+      
+      <div className="quantum-card-details">
+        <span className="instructor">Instructor: {course.instructorName}</span>
+        <span className="price">${course.price}</span>
+        <div className="rating">
+          ⭐ {course.rating || 'No ratings'} ({course.totalRatings || 0} ratings)
+        </div>
+      </div>
+
+      <div className="quantum-card-actions">
+        {user?.role === 'STUDENT' && (
+          <>
+            {!isEnrolled ? (
+              <button 
+                onClick={() => onEnroll(course.id)}
+                disabled={loading}
+                className="quantum-btn quantum-action-btn quantum-enroll"
+              >
+                {loading ? '⏳' : '📝 Enroll'}
+              </button>
+            ) : (
+              <button 
+                onClick={() => onUnenroll(enrollmentId)}
+                disabled={loading}
+                className="quantum-btn quantum-action-btn quantum-unenroll"
+              >
+                {loading ? '⏳' : '❌ Unenroll'}
+              </button>
+            )}
+            {canRate && (
+              <button 
+                onClick={() => onRate(course)}
+                className="quantum-btn quantum-action-btn quantum-rate"
+              >
+                ⭐ Rate
+              </button>
+            )}
+          </>
+        )}
+        {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
+          <div className="instructor-actions">
+            <button 
+              onClick={() => onEdit(course)}
+              className="quantum-btn quantum-action-btn"
+            >
+              ✏️ Edit
+            </button>
+            <button 
+              onClick={() => onDelete(course.id)}
+              className="quantum-btn quantum-action-btn quantum-unenroll"
+            >
+              🗑️ Delete
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// Updated EnrollmentsSection with quantum CSS classes
+const EnrollmentsSection = React.memo(({ enrollments, loading, onUnenroll, onRate, canRateCourse }) => {
+  if (!enrollments.length) {
+    return (
+      <div className="quantum-enrollments-section">
+        <div className="section-header">
+          <h2 className="quantum-text-gradient">🎓 My Enrollments (0)</h2>
+        </div>
+        <div className="empty-state">
+          <p>You haven't enrolled in any courses yet.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="quantum-enrollments-section">
+      <div className="section-header">
+        <h2 className="quantum-text-gradient">🎓 My Enrollments ({enrollments.length})</h2>
+      </div>
+      <div className="quantum-enrollments-list">
+        {enrollments.map(enrollment => {
+          if (!enrollment || !enrollment.enrollmentId) return null;
+
+          const course = enrollment.course || {};
+
+          return (
+            <div key={enrollment.enrollmentId} className="quantum-card quantum-glass">
+              <div className="enrollment-info">
+                <span className="course-title quantum-glow-text">
+                  {course.title || `Course ID: ${enrollment.courseId}`}
+                </span>
+                <span className="course-category quantum-badge">
+                  {course.category || 'Category not available'}
+                </span>
+                <span className="enrollment-date">
+                  Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                </span>
+                <span className="instructor">
+                  Instructor: {course.instructorName || 'Not available'}
+                </span>
+                <span className="course-price">
+                  Price: ${course.price || 'N/A'}
+                </span>
+              </div>
+              <div className="enrollment-actions">
+                <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
+                  {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
+                </span>
+                <button 
+                  onClick={() => onUnenroll(enrollment.enrollmentId)}
+                  disabled={loading}
+                  className="quantum-btn quantum-unenroll"
+                >
+                  {loading ? '⏳' : '❌ Unenroll'}
+                </button>
+                {enrollment.completed && canRateCourse(enrollment.courseId) && (
+                  <button 
+                    onClick={() => onRate(course)}
+                    className="quantum-btn quantum-rate"
+                  >
+                    ⭐ Rate Course
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
+// Updated RatingModal with quantum CSS classes
+const RatingModal = React.memo(({ course, rating, onRatingChange, onSubmit, onClose }) => {
+  if (!course) return null;
+
+  return (
+    <div className="quantum-modal-overlay" role="dialog" aria-labelledby="rating-modal-title">
+      <div className="quantum-modal quantum-glass quantum-3d">
+        <h3 id="rating-modal-title" className="quantum-text-gradient">Rate {course.title}</h3>
+        <div className="quantum-stars">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              className={`quantum-star ${star <= rating.stars ? 'active' : ''}`}
+              onClick={() => onRatingChange({...rating, stars: star})}
+              aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+            >
+              ⭐
+            </button>
+          ))}
+        </div>
+        <div className="quantum-form-group">
+          <label htmlFor="rating-comment">Your review (optional)</label>
+          <textarea
+            id="rating-comment"
+            className="quantum-input"
+            placeholder="Your review (optional)"
+            value={rating.comment}
+            onChange={(e) => onRatingChange({...rating, comment: e.target.value})}
+            rows="3"
+          />
+        </div>
+        <div className="modal-actions">
+          <button className="quantum-btn" onClick={onSubmit}>Submit Rating</button>
+          <button className="quantum-btn quantum-btn-secondary" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export default Dashboard;

@@ -54,6 +54,22 @@ public class EnrollmentService {
     public void unenrollStudent(Long enrollmentId) {
         enrollmentRepository.deleteById(enrollmentId);
     }
+    
+    // Add this method to your existing EnrollmentService class
+public int getEnrollmentCountByCourse(Long courseId) {
+    return enrollmentRepository.countByCourseId(courseId);
+}
+
+public List<Enrollment> getCompletedEnrollmentsByCourse(Long courseId) {
+    List<Enrollment> enrollments = enrollmentRepository.findByCourseId(courseId);
+    return enrollments.stream()
+        .filter(Enrollment::isCompleted)
+        .toList();
+}
+public Optional<Enrollment> getEnrollmentById(Long enrollmentId) {
+    return enrollmentRepository.findById(enrollmentId);
+}
+
 
     public void markAsCompleted(Long enrollmentId) {
         Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollmentId);
