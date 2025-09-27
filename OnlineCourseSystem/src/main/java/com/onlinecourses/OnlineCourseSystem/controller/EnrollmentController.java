@@ -1,5 +1,6 @@
 package com.onlinecourses.OnlineCourseSystem.controller;
 
+import com.onlinecourses.OnlineCourseSystem.dto.CourseEnrollmentDto;
 import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentResponseDto;
 import com.onlinecourses.OnlineCourseSystem.entity.Course;
 import com.onlinecourses.OnlineCourseSystem.entity.Enrollment;
@@ -88,19 +89,42 @@ public class EnrollmentController {
     }
 
     @GetMapping("/course/{courseId}")
-    public List<Enrollment> getCourseEnrollments(@PathVariable Long courseId) {
-        return enrollmentService.getEnrollmentsByCourse(courseId);
+public ResponseEntity<List<CourseEnrollmentDto>> getCourseEnrollments(@PathVariable Long courseId) {
+    try {
+        List<Enrollment> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
+        
+        // Get course details
+        Course course = courseService.getCourseById(courseId)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
+        
+        List<CourseEnrollmentDto> response = enrollments.stream().map(enrollment -> 
+            new CourseEnrollmentDto(
+                enrollment.getId(),
+                enrollment.getStudentId(),
+                enrollment.getCourseId(),
+                enrollment.getEnrollmentDate(),
+                enrollment.isCompleted(),
+                enrollment.getCompletionDate(),
+                course.getTitle(),
+                course.getInstructorName()
+            )
+        ).collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.internalServerError().build();
     }
+}
 
-    @PostMapping("/{enrollmentId}/complete")
-    public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {
-        try {
-            enrollmentService.markAsCompleted(enrollmentId);
-            return ResponseEntity.ok().body("Course marked as completed");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
-        }
+  @PutMapping("/{enrollmentId}/complete")  // CHANGE FROM @PostMapping TO @PutMapping
+public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {
+    try {
+        Enrollment updatedEnrollment = enrollmentService.markAsCompleted(enrollmentId);
+        return ResponseEntity.ok(updatedEnrollment);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body("Error: " + e.getMessage());
     }
+}
 
     @DeleteMapping("/{enrollmentId}")
     public ResponseEntity<?> unenrollStudent(@PathVariable Long enrollmentId) {

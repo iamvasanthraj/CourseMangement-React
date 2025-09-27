@@ -1,0 +1,108 @@
+.certificate-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.certificate-modal {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.certificate-content {
+  background: #fafafa;
+  padding: 3rem;
+  border: 15px solid #d4af37;
+  text-align: center;
+  min-width: 800px;
+}
+
+.certificate-header h1 {
+  font-family: 'Times New Roman', serif;
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #d4af37;
+  padding-bottom: 1rem;
+}
+
+.student-name {
+  font-family: 'Times New Roman', serif;
+  font-size: 2.5rem;
+  color: #d4af37;
+  margin: 1rem 0;
+}
+
+.course-title {
+  font-family: 'Times New Roman', serif;
+  font-size: 1.8rem;
+  color: #333;
+  margin: 1rem 0;
+}
+
+.certificate-details {
+  margin: 2rem 0;
+  font-size: 1.1rem;
+}
+
+.signature {
+  margin-top: 3rem;
+}
+
+.signature-line {
+  width: 200px;
+  height: 1px;
+  background: #333;
+  margin: 0 auto 0.5rem;
+}
+
+.certificate-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.download-btn, .close-certificate {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.download-btn {
+  background: #2ed573;
+  color: white;
+}
+
+.close-certificate {
+  background: #747d8c;
+  color: white;
+}

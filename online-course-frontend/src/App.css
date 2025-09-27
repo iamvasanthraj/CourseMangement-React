@@ -883,10 +883,22 @@ body {
   }
 }
 
-.quantum-stars {
-  display: flex;
-  gap: 0.5rem;
-  margin: 1rem 0;
+.quantum-stars button.quantum-star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 2rem; /* bigger star */
+  transition: transform 0.2s;
+}
+
+.quantum-stars button.quantum-star:hover,
+.quantum-stars button.quantum-star.active {
+  color: gold;      /* highlighted star */
+  transform: scale(1.2);
+}
+
+.quantum-stars button.quantum-star:focus {
+  outline: none;
 }
 
 .quantum-star {
@@ -1035,60 +1047,109 @@ body {
     transform: translateY(-5px);
   }
 }
-
-/* ===== Instructor Specific Styles ===== */
-.instructor-actions {
-  display: flex;
-  gap: 0.5rem;
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-}
-
-.instructor-actions .quantum-btn {
-  flex: 1;
-}
-
-.quantum-card-meta {
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  gap: 0.5rem;
+  justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
-/* ===== Course Card Specific Enhancements ===== */
-.course-header {
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
-.category-badge {
-  background: var(--secondary);
+.close-btn {
+  background: #ff4757;
   color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
 }
 
-/* ===== Enhanced Focus States for Accessibility ===== */
-.quantum-btn:focus-visible,
-.quantum-input:focus-visible,
-.quantum-star:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+/* Enrollments Modal Styles */
+.enrollments-modal {
+  max-width: 800px;
 }
 
-/* ===== Print Styles ===== */
-@media print {
-  .quantum-btn,
-  .enrollment-actions,
-  .quantum-card-actions {
-    display: none !important;
-  }
-  
-  .quantum-card {
-    box-shadow: none;
-    border: 1px solid var(--gray);
-  }
-  
+.enrollment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0.5rem;
+}
+
+.enrollment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.student-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.enrollment-date, .completion-date {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.status.completed {
+  color: #2ed573;
+  font-weight: bold;
+}
+
+.status.in-progress {
+  color: #ffa502;
+  font-weight: bold;
+}
+
+.complete-btn, .certificate-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.complete-btn {
+  background: #2ed573;
+  color: white;
+}
+
+.certificate-btn {
+  background: #3742fa;
+  color: white;
+}
+
+/* Instructor actions in course card */
+.instructor-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }

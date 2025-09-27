@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import RatingModal from './RatingModal';
+import Certificate from './Certificate';
 import { coursesAPI, enrollmentAPI, ratingAPI } from '../services/api';
 
 const Dashboard = () => {
@@ -20,6 +22,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [filter, setFilter] = useState('ALL');
+  const [selectedCourseEnrollments, setSelectedCourseEnrollments] = useState([]);
+  const [showEnrollmentsModal, setShowEnrollmentsModal] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [showCertificate, setShowCertificate] = useState(false);
 
   const categories = ['ALL', 'BACKEND', 'FRONTEND', 'CYBERSECURITY', 'DATABASE', 'MOBILE', 'DEVOPS'];
   const batches = ['New Batch', 'Ongoing', 'Completed'];
@@ -28,6 +34,52 @@ const Dashboard = () => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   }, []);
+
+  // Load enrollments for a specific course (for instructors)
+  const loadCourseEnrollments = async (courseId) => {
+    try {
+      setLoading(true);
+      const response = await enrollmentAPI.getCourseEnrollments(courseId);
+      const enrollmentsData = Array.isArray(response?.data) ? response.data : [];
+      
+      const enrollmentsWithStudents = enrollmentsData.map((enrollment) => ({
+        ...enrollment,
+        studentName: `Student ${enrollment.studentId}`
+      }));
+      
+      setSelectedCourseEnrollments(enrollmentsWithStudents);
+      setShowEnrollmentsModal(true);
+    } catch (error) {
+      console.error('Error loading enrollments:', error);
+      showMessage('error', 'Failed to load enrollments');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mark enrollment as complete
+  const handleMarkComplete = async (enrollmentId) => {
+    try {
+      setLoading(true);
+      await enrollmentAPI.markComplete(enrollmentId);
+      showMessage('success', 'Course marked as completed!');
+      
+      if (selectedCourseEnrollments.length > 0) {
+        const courseId = selectedCourseEnrollments[0].courseId;
+        await loadCourseEnrollments(courseId);
+      }
+    } catch (error) {
+      showMessage('error', 'Failed to mark as complete');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate certificate
+  const handleGenerateCertificate = (enrollment) => {
+    setSelectedEnrollment(enrollment);
+    setShowCertificate(true);
+  };
 
   const loadCourses = useCallback(async () => {
     try {
@@ -133,14 +185,15 @@ const Dashboard = () => {
   const handleDeleteCourse = async (courseId) => {
     if (!courseId) return;
 
-    if (window.confirm('Are you sure you want to delete this course?')) {
-      try {
-        await coursesAPI.delete(courseId);
-        showMessage('success', 'Course deleted successfully!');
-        await loadCourses();
-      } catch (error) {
-        showMessage('error', 'Failed to delete course');
-      }
+    try {
+      setLoading(true);
+      await coursesAPI.delete(courseId);
+      showMessage('success', 'Course deleted successfully!');
+      await loadCourses();
+    } catch (error) {
+      showMessage('error', 'Failed to delete course');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -169,10 +222,6 @@ const Dashboard = () => {
       return;
     }
 
-    if (!window.confirm('Are you sure you want to unenroll from this course?')) {
-      return;
-    }
-
     try {
       setLoading(true);
       await enrollmentAPI.unenroll(enrollmentId);
@@ -192,7 +241,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleRateCourse = async (course) => {
+  const handleRateCourse = (course) => {
     if (!course?.id) return;
     setSelectedCourse(course);
     setShowRatingModal(true);
@@ -229,7 +278,7 @@ const Dashboard = () => {
 
   const canRateCourse = useCallback((courseId) => {
     const enrollment = enrollments.find(e => e.courseId === courseId);
-    return enrollment && enrollment.completed;
+    return !!enrollment;
   }, [enrollments]);
 
   const filteredCourses = filter === 'ALL' 
@@ -262,6 +311,220 @@ const Dashboard = () => {
   if (!user) {
     return <div className="quantum-loading">Please log in to access the dashboard.</div>;
   }
+
+  // CourseCard Component (Inline)
+  const CourseCard = React.memo(({ course, user, isEnrolled, enrollmentId, canRate, onEnroll, onUnenroll, onRate, onDelete, onEdit, loading }) => {
+    if (!course) return null;
+
+    return (
+      <div className="quantum-card quantum-hover-lift quantum-3d">
+        <div className="quantum-card-header">
+          <div>
+            <h3 className="quantum-glow-text">{course.title}</h3>
+            <span className="quantum-badge">{course.category}</span>
+          </div>
+          <div className="quantum-card-meta">
+            <span className="quantum-tag">{course.batch}</span>
+            {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
+              <span className="quantum-badge quantum-enroll">Your Course</span>
+            )}
+          </div>
+        </div>
+        
+        <p className="quantum-card-description">{course.description}</p>
+        
+        <div className="quantum-card-details">
+          <span className="instructor">Instructor: {course.instructorName}</span>
+          <span className="price">${course.price}</span>
+          <div className="rating">
+            ⭐ {course.rating > 0 ? course.rating.toFixed(1) : 'No ratings'} ({course.totalRatings || 0} ratings)
+          </div>
+        </div>
+
+        <div className="quantum-card-actions">
+          {user?.role === 'STUDENT' && (
+            <>
+              {!isEnrolled ? (
+                <button 
+                  onClick={() => onEnroll(course.id)}
+                  disabled={loading}
+                  className="quantum-btn quantum-action-btn quantum-enroll"
+                >
+                  {loading ? '⏳' : '📝 Enroll'}
+                </button>
+              ) : (
+                <button 
+                  onClick={() => onUnenroll(enrollmentId)}
+                  disabled={loading}
+                  className="quantum-btn quantum-action-btn quantum-unenroll"
+                >
+                  {loading ? '⏳' : '❌ Unenroll'}
+                </button>
+              )}
+              {canRate && (
+                <button onClick={() => onRate(course)} className="quantum-btn quantum-action-btn quantum-rate">
+                  ⭐ Rate
+                </button>
+              )}
+            </>
+          )}
+          {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
+            <div className="instructor-actions">
+              <button 
+                onClick={() => loadCourseEnrollments(course.id)}
+                className="quantum-btn quantum-action-btn"
+              >
+                👥 Enrollments
+              </button>
+              <button 
+                onClick={() => onEdit(course)}
+                className="quantum-btn quantum-action-btn"
+              >
+                ✏️ Edit
+              </button>
+              <button 
+                onClick={() => onDelete(course.id)}
+                className="quantum-btn quantum-action-btn quantum-unenroll"
+              >
+                🗑️ Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  });
+
+  // EnrollmentsSection Component
+  const EnrollmentsSection = React.memo(({ enrollments, loading, onUnenroll, onRate, canRateCourse }) => {
+    if (!enrollments.length) {
+      return (
+        <div className="quantum-enrollments-section">
+          <div className="section-header">
+            <h2 className="quantum-text-gradient">🎓 My Enrollments (0)</h2>
+          </div>
+          <div className="empty-state">
+            <p>You haven't enrolled in any courses yet.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="quantum-enrollments-section">
+        <div className="section-header">
+          <h2 className="quantum-text-gradient">🎓 My Enrollments ({enrollments.length})</h2>
+        </div>
+        <div className="quantum-enrollments-list">
+          {enrollments.map(enrollment => {
+            if (!enrollment || !enrollment.enrollmentId) return null;
+
+            const course = enrollment.course || {};
+
+            return (
+              <div key={enrollment.enrollmentId} className="quantum-card quantum-glass">
+                <div className="enrollment-info">
+                  <span className="course-title quantum-glow-text">
+                    {course.title || `Course ID: ${enrollment.courseId}`}
+                  </span>
+                  <span className="course-category quantum-badge">
+                    {course.category || 'Category not available'}
+                  </span>
+                  <span className="enrollment-date">
+                    Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                  </span>
+                  <span className="instructor">
+                    Instructor: {course.instructorName || 'Not available'}
+                  </span>
+                  <span className="course-price">
+                    Price: ${course.price || 'N/A'}
+                  </span>
+                </div>
+                <div className="enrollment-actions">
+                  <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
+                    {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
+                  </span>
+                  <button 
+                    onClick={() => onUnenroll(enrollment.enrollmentId)}
+                    disabled={loading}
+                    className="quantum-btn quantum-unenroll"
+                  >
+                    {loading ? '⏳' : '❌ Unenroll'}
+                  </button>
+                  {canRateCourse(enrollment.courseId) && (
+                    <button 
+                      onClick={() => onRate(course)}
+                      className="quantum-btn quantum-rate"
+                    >
+                      ⭐ Rate Course
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  });
+
+  // EnrollmentsModal Component
+  const EnrollmentsModal = ({ enrollments, loading, onMarkComplete, onGenerateCertificate, onClose }) => {
+    return (
+      <div className="modal-overlay">
+        <div className="modal enrollments-modal">
+          <div className="modal-header">
+            <h3>Course Enrollments</h3>
+            <button className="close-btn" onClick={onClose}>×</button>
+          </div>
+          
+          <div className="enrollments-list">
+            {enrollments.length === 0 ? (
+              <p>No students have enrolled in this course yet.</p>
+            ) : (
+              enrollments.map((enrollment) => (
+                <div key={enrollment.enrollmentId} className="enrollment-item">
+                  <div className="enrollment-info">
+                    <span className="student-name">{enrollment.studentName}</span>
+                    <span className="enrollment-date">
+                      Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                    </span>
+                    <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
+                      {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
+                    </span>
+                    {enrollment.completed && (
+                      <span className="completion-date">
+                        Completed: {new Date(enrollment.completionDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="enrollment-actions">
+                    {!enrollment.completed ? (
+                      <button
+                        onClick={() => onMarkComplete(enrollment.enrollmentId)}
+                        disabled={loading}
+                        className="complete-btn"
+                      >
+                        {loading ? '⏳' : '✅ Mark Complete'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onGenerateCertificate(enrollment)}
+                        className="certificate-btn"
+                      >
+                        🎓 Generate Certificate
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="quantum-dashboard">
@@ -444,6 +707,24 @@ const Dashboard = () => {
         />
       )}
 
+      {/* Modals */}
+      {showEnrollmentsModal && (
+        <EnrollmentsModal
+          enrollments={selectedCourseEnrollments}
+          loading={loading}
+          onMarkComplete={handleMarkComplete}
+          onGenerateCertificate={handleGenerateCertificate}
+          onClose={() => setShowEnrollmentsModal(false)}
+        />
+      )}
+
+      {showCertificate && selectedEnrollment && (
+        <Certificate
+          enrollment={selectedEnrollment}
+          onClose={() => setShowCertificate(false)}
+        />
+      )}
+
       {showRatingModal && (
         <RatingModal 
           course={selectedCourse}
@@ -456,200 +737,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-// Updated CourseCard component with quantum CSS classes
-const CourseCard = React.memo(({ course, user, isEnrolled, enrollmentId, canRate, onEnroll, onUnenroll, onRate, onDelete, onEdit, loading }) => {
-  if (!course) return null;
-
-  return (
-    <div className="quantum-card quantum-hover-lift quantum-3d">
-      <div className="quantum-card-header">
-        <div>
-          <h3 className="quantum-glow-text">{course.title}</h3>
-          <span className="quantum-badge">{course.category}</span>
-        </div>
-        <div className="quantum-card-meta">
-          <span className="quantum-tag">{course.batch}</span>
-          {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
-            <span className="quantum-badge quantum-enroll">Your Course</span>
-          )}
-        </div>
-      </div>
-      
-      <p className="quantum-card-description">{course.description}</p>
-      
-      <div className="quantum-card-details">
-        <span className="instructor">Instructor: {course.instructorName}</span>
-        <span className="price">${course.price}</span>
-        <div className="rating">
-          ⭐ {course.rating || 'No ratings'} ({course.totalRatings || 0} ratings)
-        </div>
-      </div>
-
-      <div className="quantum-card-actions">
-        {user?.role === 'STUDENT' && (
-          <>
-            {!isEnrolled ? (
-              <button 
-                onClick={() => onEnroll(course.id)}
-                disabled={loading}
-                className="quantum-btn quantum-action-btn quantum-enroll"
-              >
-                {loading ? '⏳' : '📝 Enroll'}
-              </button>
-            ) : (
-              <button 
-                onClick={() => onUnenroll(enrollmentId)}
-                disabled={loading}
-                className="quantum-btn quantum-action-btn quantum-unenroll"
-              >
-                {loading ? '⏳' : '❌ Unenroll'}
-              </button>
-            )}
-            {canRate && (
-              <button 
-                onClick={() => onRate(course)}
-                className="quantum-btn quantum-action-btn quantum-rate"
-              >
-                ⭐ Rate
-              </button>
-            )}
-          </>
-        )}
-        {user?.role === 'INSTRUCTOR' && course.instructorId === user.userId && (
-          <div className="instructor-actions">
-            <button 
-              onClick={() => onEdit(course)}
-              className="quantum-btn quantum-action-btn"
-            >
-              ✏️ Edit
-            </button>
-            <button 
-              onClick={() => onDelete(course.id)}
-              className="quantum-btn quantum-action-btn quantum-unenroll"
-            >
-              🗑️ Delete
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
-
-// Updated EnrollmentsSection with quantum CSS classes
-const EnrollmentsSection = React.memo(({ enrollments, loading, onUnenroll, onRate, canRateCourse }) => {
-  if (!enrollments.length) {
-    return (
-      <div className="quantum-enrollments-section">
-        <div className="section-header">
-          <h2 className="quantum-text-gradient">🎓 My Enrollments (0)</h2>
-        </div>
-        <div className="empty-state">
-          <p>You haven't enrolled in any courses yet.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="quantum-enrollments-section">
-      <div className="section-header">
-        <h2 className="quantum-text-gradient">🎓 My Enrollments ({enrollments.length})</h2>
-      </div>
-      <div className="quantum-enrollments-list">
-        {enrollments.map(enrollment => {
-          if (!enrollment || !enrollment.enrollmentId) return null;
-
-          const course = enrollment.course || {};
-
-          return (
-            <div key={enrollment.enrollmentId} className="quantum-card quantum-glass">
-              <div className="enrollment-info">
-                <span className="course-title quantum-glow-text">
-                  {course.title || `Course ID: ${enrollment.courseId}`}
-                </span>
-                <span className="course-category quantum-badge">
-                  {course.category || 'Category not available'}
-                </span>
-                <span className="enrollment-date">
-                  Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
-                </span>
-                <span className="instructor">
-                  Instructor: {course.instructorName || 'Not available'}
-                </span>
-                <span className="course-price">
-                  Price: ${course.price || 'N/A'}
-                </span>
-              </div>
-              <div className="enrollment-actions">
-                <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
-                  {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
-                </span>
-                <button 
-                  onClick={() => onUnenroll(enrollment.enrollmentId)}
-                  disabled={loading}
-                  className="quantum-btn quantum-unenroll"
-                >
-                  {loading ? '⏳' : '❌ Unenroll'}
-                </button>
-                {enrollment.completed && canRateCourse(enrollment.courseId) && (
-                  <button 
-                    onClick={() => onRate(course)}
-                    className="quantum-btn quantum-rate"
-                  >
-                    ⭐ Rate Course
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-});
-
-// Updated RatingModal with quantum CSS classes
-const RatingModal = React.memo(({ course, rating, onRatingChange, onSubmit, onClose }) => {
-  if (!course) return null;
-
-  return (
-    <div className="quantum-modal-overlay" role="dialog" aria-labelledby="rating-modal-title">
-      <div className="quantum-modal quantum-glass quantum-3d">
-        <h3 id="rating-modal-title" className="quantum-text-gradient">Rate {course.title}</h3>
-        <div className="quantum-stars">
-          {[1, 2, 3, 4, 5].map(star => (
-            <button
-              key={star}
-              className={`quantum-star ${star <= rating.stars ? 'active' : ''}`}
-              onClick={() => onRatingChange({...rating, stars: star})}
-              aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
-            >
-              ⭐
-            </button>
-          ))}
-        </div>
-        <div className="quantum-form-group">
-          <label htmlFor="rating-comment">Your review (optional)</label>
-          <textarea
-            id="rating-comment"
-            className="quantum-input"
-            placeholder="Your review (optional)"
-            value={rating.comment}
-            onChange={(e) => onRatingChange({...rating, comment: e.target.value})}
-            rows="3"
-          />
-        </div>
-        <div className="modal-actions">
-          <button className="quantum-btn" onClick={onSubmit}>Submit Rating</button>
-          <button className="quantum-btn quantum-btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-});
 
 export default Dashboard;

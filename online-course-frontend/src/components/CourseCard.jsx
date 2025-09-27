@@ -8,7 +8,7 @@ const CourseCard = ({
   canRate = false,
   onEnroll,
   onUnenroll,
-  onRating,
+  onRating,  // This should be used consistently
   loading = false
 }) => {
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -24,6 +24,11 @@ const CourseCard = ({
       setRating(0);
       setComment('');
     }
+  };
+
+  // Fix the button click handler
+  const handleRateClick = () => {
+    setShowRatingModal(true);
   };
 
   return (
@@ -49,18 +54,19 @@ const CourseCard = ({
         ) : (
           <>
             {canRate && (
-              <button
+              <button 
+                onClick={handleRateClick} 
                 className={`${styles.button} ${styles.rateBtn}`}
-                onClick={() => setShowRatingModal(true)}
               >
-                Rate Course
+                ⭐ Rate
               </button>
             )}
             <button
               className={`${styles.button} ${styles.unenrollBtn}`}
               onClick={() => onUnenroll(enrollmentId)}
+              disabled={loading}
             >
-              Unenroll
+              {loading ? 'Unenrolling...' : 'Unenroll'}
             </button>
           </>
         )}
@@ -86,17 +92,21 @@ const CourseCard = ({
               placeholder="Write your review..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+              className={styles.commentTextarea}
             />
-            <div className={styles.courseActions}>
-              <button className={styles.button} onClick={() => setShowRatingModal(false)}>
+            <div className={styles.modalActions}>
+              <button 
+                className={styles.button} 
+                onClick={() => setShowRatingModal(false)}
+              >
                 Cancel
               </button>
               <button
-                className={`${styles.button} ${styles.rateBtn}`}
+                className={`${styles.button} ${styles.submitBtn}`}
                 onClick={handleRatingSubmit}
                 disabled={rating === 0}
               >
-                Submit
+                Submit Rating
               </button>
             </div>
           </div>

@@ -71,12 +71,14 @@ public Optional<Enrollment> getEnrollmentById(Long enrollmentId) {
 }
 
 
-    public void markAsCompleted(Long enrollmentId) {
-        Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollmentId);
-        if (enrollment.isPresent()) {
-            Enrollment enroll = enrollment.get();
-            enroll.setCompleted(true);
-            enrollmentRepository.save(enroll);
-        }
+   public Enrollment markAsCompleted(Long enrollmentId) {
+    Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollmentId);
+    if (enrollment.isPresent()) {
+        Enrollment enroll = enrollment.get();
+        enroll.setCompleted(true); // This will automatically set completionDate
+        return enrollmentRepository.save(enroll);
+    } else {
+        throw new RuntimeException("Enrollment not found with id: " + enrollmentId);
+    }
     }
 }

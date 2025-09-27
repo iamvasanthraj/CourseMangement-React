@@ -54,13 +54,16 @@ export const coursesAPI = {
   search: (query) => api.get(`/courses/search?query=${query}`),
 };
 
-// Enrollment API
+// Enrollment API - Fixed duplicate functions
 export const enrollmentAPI = {
   enroll: (enrollmentData) => api.post('/enrollments/enroll', enrollmentData),
   getStudentEnrollments: (studentId) => api.get(`/enrollments/student/${studentId}`),
   getCourseEnrollments: (courseId) => api.get(`/enrollments/course/${courseId}`),
   markComplete: (enrollmentId) => api.put(`/enrollments/${enrollmentId}/complete`),
   unenroll: (enrollmentId) => api.delete(`/enrollments/${enrollmentId}`),
+  generateCertificate: (enrollmentId) => api.get(`/enrollments/${enrollmentId}/certificate`, { 
+    responseType: 'blob' 
+  }),
 };
 
 // Rating API
