@@ -1,5 +1,5 @@
 import React from 'react';
-import './RatingModal.css';
+import '../../styles/RatingModal.css';
 
 const RatingModal = ({ course, rating, onRatingChange, onSubmit, onClose }) => {
   if (!course) return null;

@@ -1,1145 +1,145 @@
-/* ===== CSS Variables & Global Styles ===== */
-:root {
-  --primary: #4361ee;
-  --primary-dark: #3a56d4;
-  --secondary: #7209b7;
-  --success: #4cc9f0;
-  --danger: #f72585;
-  --warning: #f8961e;
-  --info: #4895ef;
-  --light: #f8f9fa;
-  --dark: #212529;
-  --gray: #6c757d;
-  --light-gray: #e9ecef;
-  --border-radius: 12px;
-  --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  --box-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
-  --transition: all 0.3s ease;
-  --gradient: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
-}
+/* App.css - Global Layout Styles */
 
+/* Reset and base styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: var(--dark);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-}
-
-/* ===== Enhanced Auth Styles ===== */
-.auth-container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.auth-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,1000 1000,0 1000,1000"/></svg>');
-  background-size: cover;
-}
-
-.auth-glass {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 3rem;
+body, html {
+  margin: 0;
+  padding: 0;
   width: 100%;
-  max-width: 450px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  position: relative;
-  z-index: 1;
-  animation: authSlideUp 0.6s ease;
+  height: 100%;
+  overflow-x: hidden;
 }
 
-@keyframes authSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+#root {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
 }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.auth-icon {
-  width: 80px;
-  height: 80px;
-  background: var(--gradient);
-  border-radius: 50%;
+/* App container */
+.app-container {
+  width: 100%;
+  min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  font-size: 2rem;
-  box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
 }
 
-.auth-header h2 {
-  font-size: 2.2rem;
-  background: var(--gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 0.5rem;
+/* Auth layout (login/signup) */
+.auth-layout {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
 }
 
-.auth-subtitle {
-  color: var(--gray);
-  font-size: 1.1rem;
+/* Dashboard layout */
+.dashboard-layout {
+  background: transparent;
 }
 
-.auth-form {
+/* Main content areas */
+.main-content {
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.main-content.full-screen {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+}
+
+.main-content.with-sidebar {
+  margin-left: 280px;
+  width: calc(100% - 280px);
+  background: transparent;
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Page not found */
+.page-not-found {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.auth-form-group {
-  position: relative;
-  margin-bottom: 0.5rem;
-}
-
-.auth-input {
-  width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid #e1e5ee;
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: white;
-  position: relative;
-}
-
-.auth-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-  transform: translateY(-2px);
-}
-
-.auth-input-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray);
-  z-index: 2;
-  font-size: 1.2rem;
-}
-
-.auth-options {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin: 1rem 0;
-  font-size: 0.9rem;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--gray);
-}
-
-.remember-me input {
-  width: auto;
-}
-
-.forgot-password {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: var(--transition);
-}
-
-.forgot-password:hover {
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-.auth-btn {
-  width: 100%;
-  padding: 1rem;
-  background: var(--gradient);
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
   color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  text-align: center;
+  padding: 2rem;
 }
 
-.auth-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
-}
-
-.auth-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.auth-btn-loading {
-  position: relative;
+.page-not-found h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, #ff8a00, #e52e71);
+  -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
 }
 
-.auth-btn-loading::after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  top: 50%;
-  left: 50%;
-  margin-left: -10px;
-  margin-top: -10px;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  border-top-color: transparent;
-  animation: spin 0.8s ease infinite;
+.page-not-found p {
+  font-size: 1.2rem;
+  color: #a0a0c0;
+  margin-bottom: 2rem;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+/* Responsive design */
+@media (max-width: 1200px) {
+  .main-content.with-sidebar {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+  
+  .sidebar {
+    width: 70px;
   }
 }
 
-.auth-divider {
-  display: flex;
-  align-items: center;
-  margin: 1.5rem 0;
-  color: var(--gray);
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #e1e5ee;
-}
-
-.auth-divider span {
-  padding: 0 1rem;
-  font-size: 0.9rem;
-}
-
-.social-auth {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.social-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  border: 2px solid #e1e5ee;
-  border-radius: 10px;
-  background: white;
-  color: var(--dark);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.social-btn:hover {
-  border-color: var(--primary);
-  transform: translateY(-2px);
-}
-
-.social-btn.google { color: #db4437; }
-.social-btn.github { color: #333; }
-
-.auth-footer {
-  text-align: center;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e1e5ee;
-  color: var(--gray);
-}
-
-.auth-link {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 0.5rem;
-  transition: var(--transition);
-}
-
-.auth-link:hover {
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-/* ===== Enhanced Error/Success Messages ===== */
-.auth-message {
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  text-align: center;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.auth-message.error {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-  color: white;
-}
-
-.auth-message.success {
-  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
-  color: white;
-}
-
-/* ===== Password Strength Indicator ===== */
-.password-strength {
-  margin-top: 0.5rem;
-}
-
-.strength-bar {
-  height: 4px;
-  border-radius: 2px;
-  background: #e1e5ee;
-  margin-bottom: 0.3rem;
-  overflow: hidden;
-}
-
-.strength-fill {
-  height: 100%;
-  width: 0%;
-  transition: all 0.3s ease;
-}
-
-.strength-fill.weak { width: 33%; background: #ff6b6b; }
-.strength-fill.medium { width: 66%; background: #feca57; }
-.strength-fill.strong { width: 100%; background: #48dbfb; }
-
-.strength-text {
-  font-size: 0.8rem;
-  color: var(--gray);
-}
-
-/* ===== Role Selection Enhanced ===== */
-.role-selection {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.role-option {
-  position: relative;
-}
-
-.role-option input {
-  display: none;
-}
-
-.role-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem 1rem;
-  border: 2px solid #e1e5ee;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  background: white;
-}
-
-.role-option input:checked + .role-label {
-  border-color: var(--primary);
-  background: rgba(67, 97, 238, 0.05);
-  transform: translateY(-2px);
-}
-
-.role-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.role-name {
-  font-weight: 600;
-  color: var(--dark);
-}
-
-.role-description {
-  font-size: 0.8rem;
-  color: var(--gray);
-  margin-top: 0.3rem;
-}
-
-/* ===== Responsive Auth Design ===== */
 @media (max-width: 768px) {
-  .auth-container {
-    padding: 1rem;
+  .main-content.with-sidebar {
+    margin-left: 60px;
+    width: calc(100% - 60px);
   }
   
-  .auth-glass {
-    padding: 2rem;
-    margin: 1rem;
-  }
-  
-  .social-auth {
-    grid-template-columns: 1fr;
-  }
-  
-  .role-selection {
-    grid-template-columns: 1fr;
-  }
-  
-  .auth-options {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 480px) {
-  .auth-glass {
-    padding: 1.5rem;
-  }
-  
-  .auth-header h2 {
-    font-size: 1.8rem;
-  }
-  
-  .auth-icon {
+  .sidebar {
     width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
-  }
-}
-
-/* ===== Floating Animation ===== */
-.auth-floating {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-} 
-
-/* ===== Utility Classes ===== */
-.text-center { text-align: center; }
-.text-gradient { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.glow-text { text-shadow: 0 0 20px rgba(67, 97, 238, 0.3); }
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-
-/* ===== Loading States ===== */
-.quantum-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  font-size: 1.1rem;
-  color: var(--gray);
-}
-
-/* ===== Message/Alert Styles ===== */
-.quantum-message {
-  padding: 1rem 1.5rem;
-  margin: 1rem 0;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  animation: slideIn 0.3s ease;
-}
-
-
-.quantum-message.success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.quantum-message.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===== Glass Morphism Effect ===== */
-.quantum-glass {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--border-radius);
-}
-
-/* ===== Card Components ===== */
-.quantum-card {
-  background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  transition: var(--transition);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.quantum-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--box-shadow-hover);
-}
-
-.quantum-card.quantum-3d {
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
-.quantum-card.quantum-hover-lift:hover {
-  transform: translateY(-8px) scale(1.02);
-}
-
-.quantum-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.quantum-card-header h3 {
-  font-size: 1.3rem;
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-}
-
-.quantum-card-description {
-  color: var(--gray);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.quantum-card-details {
-  display: grid;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.quantum-card-details .price {
-  font-weight: bold;
-  color: var(--primary);
-  font-size: 1.1rem;
-}
-
-.quantum-card-details .instructor {
-  color: var(--gray);
-  font-style: italic;
-}
-
-.quantum-card-details .rating {
-  color: var(--warning);
-  font-weight: 500;
-}
-
-.quantum-card-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-/* ===== Badges & Tags ===== */
-.quantum-badge {
-  display: inline-block;
-  padding: 0.3rem 0.8rem;
-  background: var(--gradient);
-  color: white;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.quantum-tag {
-  padding: 0.2rem 0.6rem;
-  background: var(--light-gray);
-  color: var(--gray);
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-/* ===== Button Styles ===== */
-.quantum-btn {
-  padding: 0.7rem 1.5rem;
-  border: none;
-  border-radius: var(--border-radius);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.quantum-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.quantum-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.quantum-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s;
-}
-
-.quantum-btn:hover::before {
-  left: 100%;
-}
-
-.quantum-action-btn {
-  flex: 1;
-  justify-content: center;
-  min-width: 120px;
-}
-
-.quantum-btn.quantum-enroll {
-  background: var(--success);
-  color: white;
-}
-
-.quantum-btn.quantum-unenroll {
-  background: var(--danger);
-  color: white;
-}
-
-.quantum-btn.quantum-rate {
-  background: var(--warning);
-  color: white;
-}
-
-.quantum-btn-secondary {
-  background: var(--gray);
-  color: white;
-}
-
-/* ===== Form Styles ===== */
-.quantum-form-group {
-  margin-bottom: 1rem;
-}
-
-.quantum-form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--dark);
-}
-
-.quantum-input {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  border: 2px solid var(--light-gray);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  transition: var(--transition);
-  background: white;
-}
-
-.quantum-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-}
-
-.quantum-input::placeholder {
-  color: #adb5bd;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-/* ===== Dashboard Layout ===== */
-.quantum-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.quantum-user-info {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
-}
-
-.quantum-user-info h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.quantum-user-role {
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-/* ===== Courses Section ===== */
-.quantum-courses-section {
-  margin: 2rem 0;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.section-header h2 {
-  font-size: 1.8rem;
-  margin: 0;
-}
-
-.quantum-filters {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.quantum-filter-select {
-  padding: 0.5rem 1rem;
-  border: 2px solid var(--light-gray);
-  border-radius: var(--border-radius);
-  background: white;
-  font-size: 0.9rem;
-}
-
-.quantum-counter {
-  background: var(--primary);
-  color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-/* ===== Grid Layout ===== */
-.quantum-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-/* ===== Enrollments Section ===== */
-.quantum-enrollments-section {
-  margin: 3rem 0;
-}
-
-.quantum-enrollments-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.enrollment-info {
-  display: grid;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.enrollment-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.status {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.status.completed {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status.in-progress {
-  background: #fff3cd;
-  color: #856404;
-}
-
-/* ===== Modal Styles ===== */
-.quantum-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.quantum-modal {
-  background: white;
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  max-width: 500px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.quantum-stars button.quantum-star {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 2rem; /* bigger star */
-  transition: transform 0.2s;
-}
-
-.quantum-stars button.quantum-star:hover,
-.quantum-stars button.quantum-star.active {
-  color: gold;      /* highlighted star */
-  transform: scale(1.2);
-}
-
-.quantum-stars button.quantum-star:focus {
-  outline: none;
-}
-
-.quantum-star {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  transition: var(--transition);
-  opacity: 0.6;
-}
-
-.quantum-star.active,
-.quantum-star:hover {
-  opacity: 1;
-  transform: scale(1.2);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-/* ===== Login/Signup Styles ===== */
-.login-container,
-.signup-container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-}
-
-.login-form,
-.signup-form {
-  background: white;
-  padding: 3rem;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  width: 100%;
-  max-width: 450px;
-}
-
-.login-form h2,
-.signup-form h2 {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: var(--primary);
-  font-size: 2rem;
-}
-
-.error-message {
-  background: var(--danger);
-  color: white;
-  padding: 0.8rem;
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-  text-align: center;
-  font-weight: 500;
-}
-
-/* ===== Empty States ===== */
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--gray);
-  font-size: 1.1rem;
-}
-
-/* ===== Responsive Design ===== */
-@media (max-width: 768px) {
-  .quantum-dashboard {
-    padding: 1rem;
-  }
-  
-  .quantum-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .quantum-filters {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .quantum-card-actions {
-    flex-direction: column;
-  }
-  
-  .quantum-action-btn {
-    min-width: auto;
-  }
-  
-  .enrollment-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .login-form,
-  .signup-form {
-    padding: 2rem;
-    margin: 1rem;
-  }
-  
-  .quantum-user-info h1 {
-    font-size: 2rem;
   }
 }
 
 @media (max-width: 480px) {
-  .quantum-modal {
-    margin: 1rem;
-    padding: 1.5rem;
+  .main-content.with-sidebar {
+    margin-left: 0;
+    width: 100%;
   }
   
-  .modal-actions {
-    flex-direction: column;
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
   }
   
-  .form-actions {
-    flex-direction: column;
+  .sidebar.mobile-open {
+    transform: translateX(0);
   }
 }
 
-/* ===== Animation Classes ===== */
-.quantum-bounce {
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-/* Enrollments Modal Styles */
-.enrollments-modal {
-  max-width: 800px;
-}
-
-.enrollment-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 0.5rem;
-}
-
-.enrollment-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.student-name {
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.enrollment-date, .completion-date {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.status.completed {
-  color: #2ed573;
-  font-weight: bold;
-}
-
-.status.in-progress {
-  color: #ffa502;
-  font-weight: bold;
-}
-
-.complete-btn, .certificate-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.complete-btn {
-  background: #2ed573;
-  color: white;
-}
-
-.certificate-btn {
-  background: #3742fa;
-  color: white;
-}
-
-/* Instructor actions in course card */
-.instructor-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
+/* Ensure no horizontal scroll */
+.app-container,
+.main-content,
+.main-content.full-screen,
+.main-content.with-sidebar {
+  overflow-x: hidden;
+  max-width: 100%;
 }

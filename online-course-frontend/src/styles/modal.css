@@ -1,0 +1,172 @@
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Enrollments Modal Styles */
+.enrollments-modal {
+  max-width: 800px;
+}
+
+.enrollment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0.5rem;
+}
+
+.enrollment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.student-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.enrollment-date, .completion-date {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.status.completed {
+  color: #2ed573;
+  font-weight: bold;
+}
+
+.status.in-progress {
+  color: #ffa502;
+  font-weight: bold;
+}
+
+.complete-btn, .certificate-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.complete-btn {
+  background: #2ed573;
+  color: white;
+}
+
+.certificate-btn {
+  background: #3742fa;
+  color: white;
+}
+
+/* Instructor actions in course card */
+.instructor-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+/* ===== Quantum Modal Styles ===== */
+.quantum-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.quantum-modal {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.quantum-stars button.quantum-star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 2rem;
+  transition: transform 0.2s;
+}
+
+.quantum-stars button.quantum-star:hover,
+.quantum-stars button.quantum-star.active {
+  color: gold;
+  transform: scale(1.2);
+}
+
+.quantum-stars button.quantum-star:focus {
+  outline: none;
+}
+
+.quantum-star {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: var(--transition);
+  opacity: 0.6;
+}
+
+.quantum-star.active,
+.quantum-star:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}

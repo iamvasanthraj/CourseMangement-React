@@ -1,0 +1,254 @@
+/* ===== Message/Alert Styles ===== */
+.quantum-message {
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.quantum-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.quantum-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Glass Morphism Effect ===== */
+.quantum-glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--border-radius);
+}
+
+/* ===== Card Components ===== */
+.quantum-card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: var(--transition);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quantum-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.quantum-card.quantum-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.quantum-card.quantum-hover-lift:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.quantum-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.quantum-card-header h3 {
+  font-size: 1.3rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.quantum-card-description {
+  color: var(--gray);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.quantum-card-details {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.quantum-card-details .price {
+  font-weight: bold;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.quantum-card-details .instructor {
+  color: var(--gray);
+  font-style: italic;
+}
+
+.quantum-card-details .rating {
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.quantum-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ===== Badges & Tags ===== */
+.quantum-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  background: var(--gradient);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quantum-tag {
+  padding: 0.2rem 0.6rem;
+  background: var(--light-gray);
+  color: var(--gray);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ===== Button Styles ===== */
+.quantum-btn {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.quantum-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.quantum-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.quantum-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s;
+}
+
+.quantum-btn:hover::before {
+  left: 100%;
+}
+
+.quantum-action-btn {
+  flex: 1;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.quantum-btn.quantum-enroll {
+  background: var(--success);
+  color: white;
+}
+
+.quantum-btn.quantum-unenroll {
+  background: var(--danger);
+  color: white;
+}
+
+.quantum-btn.quantum-rate {
+  background: var(--warning);
+  color: white;
+}
+
+.quantum-btn-secondary {
+  background: var(--gray);
+  color: white;
+}
+
+/* ===== Form Styles ===== */
+.quantum-form-group {
+  margin-bottom: 1rem;
+}
+
+.quantum-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.quantum-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: white;
+}
+
+.quantum-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.quantum-input::placeholder {
+  color: #adb5bd;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* ===== Empty States ===== */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray);
+  font-size: 1.1rem;
+}

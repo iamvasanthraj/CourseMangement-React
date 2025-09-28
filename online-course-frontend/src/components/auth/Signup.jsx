@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { authAPI } from '../services/api'
+import { authAPI } from '../../services/api'
 import { useNavigate, Link } from 'react-router-dom'
 
 const Signup = () => {
@@ -125,7 +125,10 @@ const Signup = () => {
             {formData.password && (
               <div className="password-strength">
                 <div className="strength-bar">
-                  <div className={`strength-fill ${passwordStrength.text.toLowerCase()}`}></div>
+                  <div 
+                    className={`strength-fill ${passwordStrength.text.toLowerCase()}`}
+                    style={{ width: `${(passwordStrength.strength / 4) * 100}%` }}
+                  ></div>
                 </div>
                 <div className="strength-text">
                   Password strength: {passwordStrength.text}
