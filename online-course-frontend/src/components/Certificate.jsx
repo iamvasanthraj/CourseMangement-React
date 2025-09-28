@@ -30,7 +30,7 @@ const Certificate = ({ enrollment, onClose }) => {
     context.font = 'bold 48px "Times New Roman", serif';
     context.fillText('CERTIFICATE OF COMPLETION', canvas.width / 2, 150);
     
-    // Student name
+    // Student name - Use actual student name from enrollment
     context.font = '36px "Times New Roman", serif';
     context.fillText(`This is to certify that`, canvas.width / 2, 250);
     context.font = 'bold 42px "Times New Roman", serif';
@@ -46,6 +46,7 @@ const Certificate = ({ enrollment, onClose }) => {
     context.font = '28px "Times New Roman", serif';
     context.fillText(`Completed on: ${new Date(enrollment.completionDate).toLocaleDateString()}`, canvas.width / 2, 570);
     context.fillText(`Instructor: ${enrollment.course?.instructorName || 'Instructor'}`, canvas.width / 2, 620);
+    context.fillText(`Student ID: ${enrollment.studentId || 'N/A'}`, canvas.width / 2, 670);
     
     // Convert to image and download
     canvas.toBlob((blob) => {
@@ -76,8 +77,10 @@ const Certificate = ({ enrollment, onClose }) => {
               <h3 className="course-title">{enrollment.course?.title || 'Course'}</h3>
               
               <div className="certificate-details">
-                <p>Completed on: {new Date(enrollment.completionDate).toLocaleDateString()}</p>
-                <p>Instructor: {enrollment.course?.instructorName || 'Instructor'}</p>
+                <p><strong>Completed on:</strong> {new Date(enrollment.completionDate).toLocaleDateString()}</p>
+                <p><strong>Instructor:</strong> {enrollment.course?.instructorName || 'Instructor'}</p>
+                <p><strong>Student ID:</strong> {enrollment.studentId || 'N/A'}</p>
+                <p><strong>Course Category:</strong> {enrollment.course?.category || 'N/A'}</p>
               </div>
             </div>
             
@@ -85,6 +88,10 @@ const Certificate = ({ enrollment, onClose }) => {
               <div className="signature">
                 <div className="signature-line"></div>
                 <p>Instructor Signature</p>
+              </div>
+              <div className="issuing-authority">
+                <p>Online Course System</p>
+                <p>Date of Issue: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>
