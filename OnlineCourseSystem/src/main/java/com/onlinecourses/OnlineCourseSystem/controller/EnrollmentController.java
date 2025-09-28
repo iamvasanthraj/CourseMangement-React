@@ -6,6 +6,8 @@ import com.onlinecourses.OnlineCourseSystem.entity.Course;
 import com.onlinecourses.OnlineCourseSystem.entity.Enrollment;
 import com.onlinecourses.OnlineCourseSystem.service.CourseService;
 import com.onlinecourses.OnlineCourseSystem.service.EnrollmentService;
+import com.onlinecourses.OnlineCourseSystem.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -87,36 +89,48 @@ public class EnrollmentController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    
+    @Autowired
+private UserService userService;
+
 
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<CourseEnrollmentDto>> getCourseEnrollments(@PathVariable Long courseId) {
-        try {
-            List<Enrollment> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
+public ResponseEntity<List<CourseEnrollmentDto>> getCourseEnrollments(@PathVariable Long courseId) {
+    try {
+        List<Enrollment> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
+        
+        Course course = courseService.getCourseById(courseId)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
+        
+        List<CourseEnrollmentDto> response = enrollments.stream().map(enrollment -> {
+            // You could add logic here to fetch actual student names if available
+            String studentName = generateStudentName(enrollment.getStudentId());
             
-            // Get course details
-            Course course = courseService.getCourseById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-            
-            List<CourseEnrollmentDto> response = enrollments.stream().map(enrollment -> 
-                new CourseEnrollmentDto(
-                    enrollment.getId(),
-                    enrollment.getStudentId(),
-                    enrollment.getCourseId(),
-                    enrollment.getEnrollmentDate(),
-                    enrollment.isCompleted(),
-                    enrollment.getCompletionDate(),
-                    course.getTitle(),
-                    course.getCategory(), // Add category
-                    course.getInstructorName(),
-                    "Student " + enrollment.getStudentId() // Add student name
-                )
-            ).collect(Collectors.toList());
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+            return new CourseEnrollmentDto(
+                enrollment.getId(),
+                enrollment.getStudentId(),
+                enrollment.getCourseId(),
+                enrollment.getEnrollmentDate(),
+                enrollment.isCompleted(),
+                enrollment.getCompletionDate(),
+                course.getTitle(),
+                course.getCategory(),
+                course.getInstructorName(),
+                studentName
+            );
+        }).collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.internalServerError().build();
     }
+}
+
+private String generateStudentName(Long studentId) {
+    // If you have access to user service, you could fetch real names here
+    // For now, return the placeholder
+    return "Student #" + studentId;
+}
 
     @PutMapping("/{enrollmentId}/complete")
     public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {

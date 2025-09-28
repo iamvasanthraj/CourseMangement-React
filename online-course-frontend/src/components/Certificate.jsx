@@ -4,16 +4,18 @@ import './Certificate.css';
 const Certificate = ({ enrollment, onClose }) => {
   if (!enrollment) return null;
 
-  // Safe data handling with fallbacks
-  const studentName = enrollment.studentName || 'Student';
+  // Safe data handling with better fallbacks
+  const studentName = enrollment.studentName || `Student #${enrollment.studentId}` || 'Student';
   const courseTitle = enrollment.course?.title || 'Course';
   const courseCategory = enrollment.course?.category || 'Category';
   const instructorName = enrollment.course?.instructorName || 'Instructor';
   const completionDate = enrollment.completionDate ? new Date(enrollment.completionDate) : new Date();
   const studentId = enrollment.studentId || 'N/A';
 
+  // Check if we have a proper student name or just a placeholder
+  const hasRealStudentName = enrollment.studentName && !enrollment.studentName.startsWith('Student #') && !enrollment.studentName.startsWith('Student ');
+
   const downloadCertificate = () => {
-    const certificateContent = document.getElementById('certificate-content');
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     
@@ -52,17 +54,20 @@ const Certificate = ({ enrollment, onClose }) => {
     context.font = '28px "Times New Roman", serif';
     context.fillText(`Category: ${courseCategory}`, canvas.width / 2, 520);
     
-    // Date and instructor
+    // Date and instructor - Only show Student ID if we don't have a real name
     context.fillText(`Completed on: ${completionDate.toLocaleDateString()}`, canvas.width / 2, 590);
     context.fillText(`Instructor: ${instructorName}`, canvas.width / 2, 630);
-    context.fillText(`Student ID: ${studentId}`, canvas.width / 2, 670);
+    
+    if (!hasRealStudentName) {
+      context.fillText(`Student ID: ${studentId}`, canvas.width / 2, 670);
+    }
     
     // Convert to image and download
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Certificate-${courseTitle}-${studentName}.png`;
+      a.download = `Certificate-${courseTitle}-${studentName.replace(/\s+/g, '-')}.png`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -71,7 +76,7 @@ const Certificate = ({ enrollment, onClose }) => {
   return (
     <div className="certificate-modal-overlay">
       <div className="certificate-modal">
-        <button className="close-btn" onClick={onClose}>×</button>
+        <button className="modal-close-btn" onClick={onClose}>×</button>
         
         <div id="certificate-content" className="certificate-content">
           <div className="certificate-border">
@@ -89,7 +94,16 @@ const Certificate = ({ enrollment, onClose }) => {
               <div className="certificate-details">
                 <p><strong>Completed on:</strong> {completionDate.toLocaleDateString()}</p>
                 <p><strong>Instructor:</strong> {instructorName}</p>
-                <p><strong>Student ID:</strong> {studentId}</p>
+                
+                {/* Only show Student ID if we don't have a real student name */}
+                {!hasRealStudentName && (
+                  <p><strong>Student ID:</strong> {studentId}</p>
+                )}
+                
+                {/* Show additional info for instructors */}
+                {hasRealStudentName && enrollment.studentId && (
+                  <p><strong>Student ID:</strong> {studentId}</p>
+                )}
               </div>
             </div>
             

@@ -36,44 +36,55 @@ const Dashboard = () => {
   }, []);
 
   // Load enrollments for a specific course (for instructors)
-  const loadCourseEnrollments = async (courseId) => {
-    try {
-      setLoading(true);
-      const response = await enrollmentAPI.getCourseEnrollments(courseId);
-      console.log('Course enrollments response:', response);
-      
-      const enrollmentsData = Array.isArray(response?.data) ? response.data : [];
-      console.log('Raw enrollments data:', enrollmentsData);
-      
-      // Map the backend response properly
-      const enrollmentsWithStudents = enrollmentsData.map((enrollment) => {
-        return {
-          enrollmentId: enrollment.enrollmentId || enrollment.id,
-          studentId: enrollment.studentId,
-          courseId: enrollment.courseId,
-          studentName: enrollment.studentName || `Student ${enrollment.studentId}`,
-          enrollmentDate: enrollment.enrollmentDate,
-          completed: enrollment.completed || false,
-          completionDate: enrollment.completionDate,
-          course: {
-            title: enrollment.courseTitle || 'Course',
-            category: enrollment.courseCategory || 'Category',
-            instructorName: enrollment.instructorName || 'Instructor'
-          }
-        };
-      });
-      
-      console.log('Processed enrollments:', enrollmentsWithStudents);
-      setSelectedCourseEnrollments(enrollmentsWithStudents);
-      setShowEnrollmentsModal(true);
-    } catch (error) {
-      console.error('Error loading enrollments:', error);
-      console.error('Error details:', error.response?.data);
-      showMessage('error', 'Failed to load enrollments');
-    } finally {
-      setLoading(false);
+ // Load enrollments for a specific course (for instructors)
+const loadCourseEnrollments = async (courseId) => {
+  try {
+    setLoading(true);
+    const response = await enrollmentAPI.getCourseEnrollments(courseId);
+    console.log('=== BACKEND RESPONSE ===');
+    console.log('Full response:', response);
+    console.log('Response data:', response?.data);
+    
+    const enrollmentsData = Array.isArray(response?.data) ? response.data : [];
+    console.log('Enrollments array:', enrollmentsData);
+    
+    // Check the first enrollment to see the actual structure
+    if (enrollmentsData.length > 0) {
+      console.log('First enrollment object:', enrollmentsData[0]);
+      console.log('Student name in first enrollment:', enrollmentsData[0].studentName);
+      console.log('All keys in first enrollment:', Object.keys(enrollmentsData[0]));
+    }
+    
+    // Map the backend response properly
+   // In loadCourseEnrollments function, temporarily force the format:
+const enrollmentsWithStudents = enrollmentsData.map((enrollment) => {
+  return {
+    enrollmentId: enrollment.enrollmentId || enrollment.id,
+    studentId: enrollment.studentId,
+    courseId: enrollment.courseId,
+    // FORCE the new format regardless of what backend sends
+    studentName: `Student #${enrollment.studentId}`,
+    enrollmentDate: enrollment.enrollmentDate,
+    completed: enrollment.completed || false,
+    completionDate: enrollment.completionDate,
+    course: {
+      title: enrollment.courseTitle || 'Course',
+      category: enrollment.courseCategory || 'Category',
+      instructorName: enrollment.instructorName || 'Instructor'
     }
   };
+});
+    
+    console.log('Processed enrollments:', enrollmentsWithStudents);
+    setSelectedCourseEnrollments(enrollmentsWithStudents);
+    setShowEnrollmentsModal(true);
+  } catch (error) {
+    console.error('Error loading enrollments:', error);
+    showMessage('error', 'Failed to load enrollments');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Mark enrollment as complete
   const handleMarkComplete = async (enrollmentId) => {
@@ -354,65 +365,77 @@ const Dashboard = () => {
   }
 
   // EnrollmentsModal Component
-  const EnrollmentsModal = ({ enrollments, loading, onMarkComplete, onGenerateCertificate, onClose }) => {
-    return (
-      <div className="modal-overlay">
-        <div className="modal enrollments-modal">
-          <div className="modal-header">
-            <h3>Course Enrollments</h3>
-            <button className="close-btn" onClick={onClose}>×</button>
-          </div>
-          
-          <div className="enrollments-list">
-            {enrollments.length === 0 ? (
-              <p>No students have enrolled in this course yet.</p>
-            ) : (
-              enrollments.map((enrollment) => (
-                <div key={enrollment.enrollmentId} className="enrollment-item">
-                  <div className="enrollment-info">
-                    <span className="student-name">{enrollment.studentName}</span>
-                    <span className="enrollment-date">
-                      Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+ // EnrollmentsModal Component - Fix the onGenerateCertificate call
+const EnrollmentsModal = ({ enrollments, loading, onMarkComplete, onGenerateCertificate, onClose }) => {
+  return (
+    <div className="modal-overlay">
+      <div className="modal enrollments-modal">
+        <div className="modal-header">
+          <h3>Course Enrollments</h3>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="enrollments-list">
+          {enrollments.length === 0 ? (
+            <p>No students have enrolled in this course yet.</p>
+          ) : (
+            enrollments.map((enrollment) => (
+              <div key={enrollment.enrollmentId} className="enrollment-item">
+                <div className="enrollment-info">
+                  <span className="student-name">{enrollment.studentName}</span>
+                  <span className="enrollment-date">
+                    Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                  </span>
+                  <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
+                    {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
+                  </span>
+                  {enrollment.completed && enrollment.completionDate && (
+                    <span className="completion-date">
+                      Completed: {new Date(enrollment.completionDate).toLocaleDateString()}
                     </span>
-                    <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
-                      {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
-                    </span>
-                    {enrollment.completed && enrollment.completionDate && (
-                      <span className="completion-date">
-                        Completed: {new Date(enrollment.completionDate).toLocaleDateString()}
-                      </span>
-                    )}
-                    <span className="course-category">
-                      Course: {enrollment.course?.title} ({enrollment.course?.category})
-                    </span>
-                  </div>
-                  
-                  <div className="enrollment-actions">
-                    {!enrollment.completed ? (
-                      <button
-                        onClick={() => onMarkComplete(enrollment.enrollmentId)}
-                        disabled={loading}
-                        className="complete-btn"
-                      >
-                        {loading ? '⏳' : '✅ Mark Complete'}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onGenerateCertificate(enrollment)}
-                        className="certificate-btn"
-                      >
-                        🎓 Generate Certificate
-                      </button>
-                    )}
-                  </div>
+                  )}
+                  <span className="course-category">
+                    Course: {enrollment.course?.title} ({enrollment.course?.category})
+                  </span>
                 </div>
-              ))
-            )}
-          </div>
+                
+                <div className="enrollment-actions">
+                  {!enrollment.completed ? (
+                    <button
+                      onClick={() => onMarkComplete(enrollment.enrollmentId)}
+                      disabled={loading}
+                      className="complete-btn"
+                    >
+                      {loading ? '⏳' : '✅ Mark Complete'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onGenerateCertificate({
+                        ...enrollment,
+                        // Ensure studentName is passed correctly
+                        studentName: enrollment.studentName, // This should come from backend
+                        studentId: enrollment.studentId,
+                        course: {
+                          title: enrollment.course?.title,
+                          category: enrollment.course?.category,
+                          instructorName: enrollment.course?.instructorName
+                        }
+                      })}
+                      className="certificate-btn"
+                    >
+                      🎓 Generate Certificate
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
   // EnrollmentsSection Component
   const EnrollmentsSection = React.memo(({ enrollments, loading, onUnenroll, onRate, canRateCourse, user, onGenerateCertificate }) => {
     if (!enrollments.length) {
@@ -477,16 +500,18 @@ const Dashboard = () => {
                   
                   {/* Show Download Certificate button for completed courses */}
                   {enrollment.completed && (
-                    <button 
-                      onClick={() => onGenerateCertificate({
-                        ...enrollment,
-                        studentName: user.username,
-                        studentId: user.userId
-                      })}
-                      className="quantum-btn quantum-certificate"
-                    >
-                      🎓 Download Certificate
-                    </button>
+                    <button
+  onClick={() => onGenerateCertificate({
+    ...enrollment,
+    // Keep the studentName from backend for instructor view
+    studentName: enrollment.studentName, 
+    studentId: enrollment.studentId,
+    course: enrollment.course
+  })}
+  className="certificate-btn"
+>
+  🎓 Generate Certificate
+</button>
                   )}
                   
                   {canRateCourse(enrollment.courseId) && (

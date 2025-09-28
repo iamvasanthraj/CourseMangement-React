@@ -34,8 +34,9 @@ const RatingModal = ({ course, rating, onRatingChange, onSubmit, onClose }) => {
           <button className="modal-close-btn" onClick={onClose}>×</button>
           
           <div className="modal-header">
-            <h3 className="modal-title">Rate This Course</h3>
-            <p className="course-name">{course.title}</p>
+            <h3 className="modal-title">Rate This Course [ {course.title} ]</h3>
+           
+            {/* <p className="course-name">{course.title}</p> */}
           </div>
 
           <div className="rating-section">
@@ -82,9 +83,6 @@ const RatingModal = ({ course, rating, onRatingChange, onSubmit, onClose }) => {
 
           {!isSubmitting && rating.stars > 0 && (
             <div className="action-buttons">
-              <button onClick={onClose} className="close-btn">
-                Close
-              </button>
             </div>
           )}
         </div>

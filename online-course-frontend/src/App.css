@@ -1078,16 +1078,6 @@ body {
   margin-bottom: 1rem;
 }
 
-.close-btn {
-  background: #ff4757;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
-  cursor: pointer;
-}
-
 /* Enrollments Modal Styles */
 .enrollments-modal {
   max-width: 800px;
