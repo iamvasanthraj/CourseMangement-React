@@ -4,6 +4,14 @@ import './Certificate.css';
 const Certificate = ({ enrollment, onClose }) => {
   if (!enrollment) return null;
 
+  // Safe data handling with fallbacks
+  const studentName = enrollment.studentName || 'Student';
+  const courseTitle = enrollment.course?.title || 'Course';
+  const courseCategory = enrollment.course?.category || 'Category';
+  const instructorName = enrollment.course?.instructorName || 'Instructor';
+  const completionDate = enrollment.completionDate ? new Date(enrollment.completionDate) : new Date();
+  const studentId = enrollment.studentId || 'N/A';
+
   const downloadCertificate = () => {
     const certificateContent = document.getElementById('certificate-content');
     const canvas = document.createElement('canvas');
@@ -30,30 +38,31 @@ const Certificate = ({ enrollment, onClose }) => {
     context.font = 'bold 48px "Times New Roman", serif';
     context.fillText('CERTIFICATE OF COMPLETION', canvas.width / 2, 150);
     
-    // Student name - Use actual student name from enrollment
+    // Student name
     context.font = '36px "Times New Roman", serif';
     context.fillText(`This is to certify that`, canvas.width / 2, 250);
     context.font = 'bold 42px "Times New Roman", serif';
-    context.fillText(enrollment.studentName || 'Student', canvas.width / 2, 320);
+    context.fillText(studentName, canvas.width / 2, 320);
     
     // Course details
     context.font = '32px "Times New Roman", serif';
     context.fillText(`has successfully completed the course`, canvas.width / 2, 400);
     context.font = 'bold 36px "Times New Roman", serif';
-    context.fillText(enrollment.course?.title || 'Course', canvas.width / 2, 470);
+    context.fillText(courseTitle, canvas.width / 2, 470);
+    context.font = '28px "Times New Roman", serif';
+    context.fillText(`Category: ${courseCategory}`, canvas.width / 2, 520);
     
     // Date and instructor
-    context.font = '28px "Times New Roman", serif';
-    context.fillText(`Completed on: ${new Date(enrollment.completionDate).toLocaleDateString()}`, canvas.width / 2, 570);
-    context.fillText(`Instructor: ${enrollment.course?.instructorName || 'Instructor'}`, canvas.width / 2, 620);
-    context.fillText(`Student ID: ${enrollment.studentId || 'N/A'}`, canvas.width / 2, 670);
+    context.fillText(`Completed on: ${completionDate.toLocaleDateString()}`, canvas.width / 2, 590);
+    context.fillText(`Instructor: ${instructorName}`, canvas.width / 2, 630);
+    context.fillText(`Student ID: ${studentId}`, canvas.width / 2, 670);
     
     // Convert to image and download
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Certificate-${enrollment.course?.title}-${enrollment.studentName}.png`;
+      a.download = `Certificate-${courseTitle}-${studentName}.png`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -72,15 +81,15 @@ const Certificate = ({ enrollment, onClose }) => {
             
             <div className="certificate-body">
               <p className="presented-to">This is to certify that</p>
-              <h2 className="student-name">{enrollment.studentName || 'Student'}</h2>
+              <h2 className="student-name">{studentName}</h2>
               <p className="completion-text">has successfully completed the course</p>
-              <h3 className="course-title">{enrollment.course?.title || 'Course'}</h3>
+              <h3 className="course-title">{courseTitle}</h3>
+              <p className="course-category"><strong>Category:</strong> {courseCategory}</p>
               
               <div className="certificate-details">
-                <p><strong>Completed on:</strong> {new Date(enrollment.completionDate).toLocaleDateString()}</p>
-                <p><strong>Instructor:</strong> {enrollment.course?.instructorName || 'Instructor'}</p>
-                <p><strong>Student ID:</strong> {enrollment.studentId || 'N/A'}</p>
-                <p><strong>Course Category:</strong> {enrollment.course?.category || 'N/A'}</p>
+                <p><strong>Completed on:</strong> {completionDate.toLocaleDateString()}</p>
+                <p><strong>Instructor:</strong> {instructorName}</p>
+                <p><strong>Student ID:</strong> {studentId}</p>
               </div>
             </div>
             

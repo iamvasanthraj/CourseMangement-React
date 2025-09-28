@@ -40,17 +40,35 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const response = await enrollmentAPI.getCourseEnrollments(courseId);
+      console.log('Course enrollments response:', response);
+      
       const enrollmentsData = Array.isArray(response?.data) ? response.data : [];
+      console.log('Raw enrollments data:', enrollmentsData);
       
-      const enrollmentsWithStudents = enrollmentsData.map((enrollment) => ({
-        ...enrollment,
-        studentName: `Student ${enrollment.studentId}`
-      }));
+      // Map the backend response properly
+      const enrollmentsWithStudents = enrollmentsData.map((enrollment) => {
+        return {
+          enrollmentId: enrollment.enrollmentId || enrollment.id,
+          studentId: enrollment.studentId,
+          courseId: enrollment.courseId,
+          studentName: enrollment.studentName || `Student ${enrollment.studentId}`,
+          enrollmentDate: enrollment.enrollmentDate,
+          completed: enrollment.completed || false,
+          completionDate: enrollment.completionDate,
+          course: {
+            title: enrollment.courseTitle || 'Course',
+            category: enrollment.courseCategory || 'Category',
+            instructorName: enrollment.instructorName || 'Instructor'
+          }
+        };
+      });
       
+      console.log('Processed enrollments:', enrollmentsWithStudents);
       setSelectedCourseEnrollments(enrollmentsWithStudents);
       setShowEnrollmentsModal(true);
     } catch (error) {
       console.error('Error loading enrollments:', error);
+      console.error('Error details:', error.response?.data);
       showMessage('error', 'Failed to load enrollments');
     } finally {
       setLoading(false);
@@ -61,14 +79,18 @@ const Dashboard = () => {
   const handleMarkComplete = async (enrollmentId) => {
     try {
       setLoading(true);
-      await enrollmentAPI.markComplete(enrollmentId);
+      const response = await enrollmentAPI.markComplete(enrollmentId);
+      console.log('Mark complete response:', response);
+      
       showMessage('success', 'Course marked as completed!');
       
+      // Refresh enrollments
       if (selectedCourseEnrollments.length > 0) {
         const courseId = selectedCourseEnrollments[0].courseId;
         await loadCourseEnrollments(courseId);
       }
     } catch (error) {
+      console.error('Mark complete error:', error);
       showMessage('error', 'Failed to mark as complete');
     } finally {
       setLoading(false);
@@ -77,6 +99,7 @@ const Dashboard = () => {
 
   // Generate certificate
   const handleGenerateCertificate = (enrollment) => {
+    console.log('Generating certificate for:', enrollment);
     setSelectedEnrollment(enrollment);
     setShowCertificate(true);
   };
@@ -101,6 +124,8 @@ const Dashboard = () => {
 
     try {
       const response = await enrollmentAPI.getStudentEnrollments(user.userId);
+      console.log('Student enrollments response:', response);
+      
       const enrollmentsData = Array.isArray(response?.data) ? response.data : 
                              Array.isArray(response) ? response : [];
       
@@ -115,14 +140,27 @@ const Dashboard = () => {
             return {
               ...enrollment,
               course: courseData,
-              enrollmentId: enrollment.enrollmentId || enrollment.id
+              enrollmentId: enrollment.enrollmentId || enrollment.id,
+              completed: enrollment.completed || false,
+              completionDate: enrollment.completionDate || null,
+              studentName: user.username,
+              studentId: user.userId
             };
           } catch (error) {
             console.error('Error loading course details:', error);
             return {
               ...enrollment,
-              course: { id: enrollment.courseId, title: 'Course not available' },
-              enrollmentId: enrollment.enrollmentId || enrollment.id
+              course: { 
+                id: enrollment.courseId, 
+                title: 'Course not available',
+                category: 'Unknown',
+                instructorName: 'Instructor not available'
+              },
+              enrollmentId: enrollment.enrollmentId || enrollment.id,
+              completed: enrollment.completed || false,
+              completionDate: enrollment.completionDate || null,
+              studentName: user.username,
+              studentId: user.userId
             };
           }
         })
@@ -134,6 +172,9 @@ const Dashboard = () => {
       showMessage('error', 'Failed to load enrollments');
     }
   }, [user?.userId, showMessage]);
+
+  // ... other functions (handleCreateCourse, handleUpdateCourse, handleDeleteCourse, 
+  // handleEnroll, handleUnenroll, handleRateCourse, submitRating) remain the same ...
 
   const handleCreateCourse = async (e) => {
     e.preventDefault();
@@ -312,7 +353,7 @@ const Dashboard = () => {
     return <div className="quantum-loading">Please log in to access the dashboard.</div>;
   }
 
-  // EnrollmentsModal Component - MUST BE DEFINED BEFORE RETURN
+  // EnrollmentsModal Component
   const EnrollmentsModal = ({ enrollments, loading, onMarkComplete, onGenerateCertificate, onClose }) => {
     return (
       <div className="modal-overlay">
@@ -336,11 +377,14 @@ const Dashboard = () => {
                     <span className={`status ${enrollment.completed ? 'completed' : 'in-progress'}`}>
                       {enrollment.completed ? '✅ Completed' : '📚 In Progress'}
                     </span>
-                    {enrollment.completed && (
+                    {enrollment.completed && enrollment.completionDate && (
                       <span className="completion-date">
                         Completed: {new Date(enrollment.completionDate).toLocaleDateString()}
                       </span>
                     )}
+                    <span className="course-category">
+                      Course: {enrollment.course?.title} ({enrollment.course?.category})
+                    </span>
                   </div>
                   
                   <div className="enrollment-actions">
@@ -369,7 +413,6 @@ const Dashboard = () => {
       </div>
     );
   };
-
   // EnrollmentsSection Component
   const EnrollmentsSection = React.memo(({ enrollments, loading, onUnenroll, onRate, canRateCourse, user, onGenerateCertificate }) => {
     if (!enrollments.length) {
@@ -408,6 +451,11 @@ const Dashboard = () => {
                   <span className="enrollment-date">
                     Enrolled: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
                   </span>
+                  {enrollment.completionDate && (
+                    <span className="completion-date">
+                      Completed: {new Date(enrollment.completionDate).toLocaleDateString()}
+                    </span>
+                  )}
                   <span className="instructor">
                     Instructor: {course.instructorName || 'Not available'}
                   </span>
@@ -541,7 +589,6 @@ const Dashboard = () => {
     );
   });
 
-  // RETURN STATEMENT - MUST COME AFTER ALL COMPONENT DEFINITIONS
   return (
     <div className="quantum-dashboard">
       <header className="quantum-user-info">

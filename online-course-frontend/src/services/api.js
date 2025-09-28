@@ -54,12 +54,12 @@ export const coursesAPI = {
   search: (query) => api.get(`/courses/search?query=${query}`),
 };
 
-// Enrollment API - Fixed duplicate functions
+// Enrollment API - Fixed with PUT method
 export const enrollmentAPI = {
   enroll: (enrollmentData) => api.post('/enrollments/enroll', enrollmentData),
   getStudentEnrollments: (studentId) => api.get(`/enrollments/student/${studentId}`),
   getCourseEnrollments: (courseId) => api.get(`/enrollments/course/${courseId}`),
-  markComplete: (enrollmentId) => api.put(`/enrollments/${enrollmentId}/complete`),
+  markComplete: (enrollmentId) => api.put(`/enrollments/${enrollmentId}/complete`), // PUT method
   unenroll: (enrollmentId) => api.delete(`/enrollments/${enrollmentId}`),
   generateCertificate: (enrollmentId) => api.get(`/enrollments/${enrollmentId}/certificate`, { 
     responseType: 'blob' 

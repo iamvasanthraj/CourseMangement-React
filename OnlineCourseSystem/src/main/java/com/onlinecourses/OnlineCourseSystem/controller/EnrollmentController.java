@@ -89,42 +89,44 @@ public class EnrollmentController {
     }
 
     @GetMapping("/course/{courseId}")
-public ResponseEntity<List<CourseEnrollmentDto>> getCourseEnrollments(@PathVariable Long courseId) {
-    try {
-        List<Enrollment> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
-        
-        // Get course details
-        Course course = courseService.getCourseById(courseId)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
-        
-        List<CourseEnrollmentDto> response = enrollments.stream().map(enrollment -> 
-            new CourseEnrollmentDto(
-                enrollment.getId(),
-                enrollment.getStudentId(),
-                enrollment.getCourseId(),
-                enrollment.getEnrollmentDate(),
-                enrollment.isCompleted(),
-                enrollment.getCompletionDate(),
-                course.getTitle(),
-                course.getInstructorName()
-            )
-        ).collect(Collectors.toList());
-        
-        return ResponseEntity.ok(response);
-    } catch (Exception e) {
-        return ResponseEntity.internalServerError().build();
+    public ResponseEntity<List<CourseEnrollmentDto>> getCourseEnrollments(@PathVariable Long courseId) {
+        try {
+            List<Enrollment> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
+            
+            // Get course details
+            Course course = courseService.getCourseById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+            
+            List<CourseEnrollmentDto> response = enrollments.stream().map(enrollment -> 
+                new CourseEnrollmentDto(
+                    enrollment.getId(),
+                    enrollment.getStudentId(),
+                    enrollment.getCourseId(),
+                    enrollment.getEnrollmentDate(),
+                    enrollment.isCompleted(),
+                    enrollment.getCompletionDate(),
+                    course.getTitle(),
+                    course.getCategory(), // Add category
+                    course.getInstructorName(),
+                    "Student " + enrollment.getStudentId() // Add student name
+                )
+            ).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
-}
 
-  @PutMapping("/{enrollmentId}/complete")  // CHANGE FROM @PostMapping TO @PutMapping
-public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {
-    try {
-        Enrollment updatedEnrollment = enrollmentService.markAsCompleted(enrollmentId);
-        return ResponseEntity.ok(updatedEnrollment);
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+    @PutMapping("/{enrollmentId}/complete")
+    public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {
+        try {
+            Enrollment updatedEnrollment = enrollmentService.markAsCompleted(enrollmentId);
+            return ResponseEntity.ok(updatedEnrollment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
-}
 
     @DeleteMapping("/{enrollmentId}")
     public ResponseEntity<?> unenrollStudent(@PathVariable Long enrollmentId) {
@@ -136,7 +138,6 @@ public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {
         }
     }
 
-    // New endpoint to get enrollment details with course info
     @GetMapping("/{enrollmentId}/details")
     public ResponseEntity<?> getEnrollmentDetails(@PathVariable Long enrollmentId) {
         try {

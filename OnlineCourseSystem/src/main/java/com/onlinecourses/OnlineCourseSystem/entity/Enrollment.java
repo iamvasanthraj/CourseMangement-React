@@ -23,7 +23,7 @@ public class Enrollment {
     private boolean completed = false;
     
     @Column(name = "completion_date")
-    private LocalDateTime completionDate; // ADD THIS FIELD
+    private LocalDateTime completionDate;
     
     // Constructors
     public Enrollment() {
@@ -57,6 +57,6 @@ public class Enrollment {
         }
     }
     
-    public LocalDateTime getCompletionDate() { return completionDate; } // ADD GETTER
-    public void setCompletionDate(LocalDateTime completionDate) { this.completionDate = completionDate; } // ADD SETTER
+    public LocalDateTime getCompletionDate() { return completionDate; }
+    public void setCompletionDate(LocalDateTime completionDate) { this.completionDate = completionDate; }
 }

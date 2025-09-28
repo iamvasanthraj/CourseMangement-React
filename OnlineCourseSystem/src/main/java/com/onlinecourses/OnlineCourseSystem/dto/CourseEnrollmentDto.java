@@ -11,23 +11,25 @@ public class CourseEnrollmentDto {
     private boolean completed;
     private LocalDateTime completionDate;
     private String courseTitle;
+    private String courseCategory;
     private String instructorName;
     
-    // Constructors, Getters, and Setters
+    // Constructors
     public CourseEnrollmentDto() {}
     
     public CourseEnrollmentDto(Long enrollmentId, Long studentId, Long courseId, 
                               LocalDateTime enrollmentDate, boolean completed, 
-                              LocalDateTime completionDate, String courseTitle, 
-                              String instructorName) {
+                              LocalDateTime completionDate, String courseTitle,
+                              String courseCategory, String instructorName, String studentName) {
         this.enrollmentId = enrollmentId;
         this.studentId = studentId;
         this.courseId = courseId;
-        this.studentName = "Student " + studentId;
+        this.studentName = studentName;
         this.enrollmentDate = enrollmentDate;
         this.completed = completed;
         this.completionDate = completionDate;
         this.courseTitle = courseTitle;
+        this.courseCategory = courseCategory;
         this.instructorName = instructorName;
     }
     
@@ -55,6 +57,9 @@ public class CourseEnrollmentDto {
     
     public String getCourseTitle() { return courseTitle; }
     public void setCourseTitle(String courseTitle) { this.courseTitle = courseTitle; }
+    
+    public String getCourseCategory() { return courseCategory; }
+    public void setCourseCategory(String courseCategory) { this.courseCategory = courseCategory; }
     
     public String getInstructorName() { return instructorName; }
     public void setInstructorName(String instructorName) { this.instructorName = instructorName; }

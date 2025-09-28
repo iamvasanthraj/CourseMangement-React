@@ -55,30 +55,30 @@ public class EnrollmentService {
         enrollmentRepository.deleteById(enrollmentId);
     }
     
-    // Add this method to your existing EnrollmentService class
-public int getEnrollmentCountByCourse(Long courseId) {
-    return enrollmentRepository.countByCourseId(courseId);
-}
-
-public List<Enrollment> getCompletedEnrollmentsByCourse(Long courseId) {
-    List<Enrollment> enrollments = enrollmentRepository.findByCourseId(courseId);
-    return enrollments.stream()
-        .filter(Enrollment::isCompleted)
-        .toList();
-}
-public Optional<Enrollment> getEnrollmentById(Long enrollmentId) {
-    return enrollmentRepository.findById(enrollmentId);
-}
-
-
-   public Enrollment markAsCompleted(Long enrollmentId) {
-    Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollmentId);
-    if (enrollment.isPresent()) {
-        Enrollment enroll = enrollment.get();
-        enroll.setCompleted(true); // This will automatically set completionDate
-        return enrollmentRepository.save(enroll);
-    } else {
-        throw new RuntimeException("Enrollment not found with id: " + enrollmentId);
+    public int getEnrollmentCountByCourse(Long courseId) {
+        return enrollmentRepository.countByCourseId(courseId);
     }
+
+    public List<Enrollment> getCompletedEnrollmentsByCourse(Long courseId) {
+        List<Enrollment> enrollments = enrollmentRepository.findByCourseId(courseId);
+        return enrollments.stream()
+            .filter(Enrollment::isCompleted)
+            .toList();
+    }
+    
+    public Optional<Enrollment> getEnrollmentById(Long enrollmentId) {
+        return enrollmentRepository.findById(enrollmentId);
+    }
+
+    public Enrollment markAsCompleted(Long enrollmentId) {
+        Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollmentId);
+        if (enrollment.isPresent()) {
+            Enrollment enroll = enrollment.get();
+            enroll.setCompleted(true);
+            enroll.setCompletionDate(java.time.LocalDateTime.now());
+            return enrollmentRepository.save(enroll);
+        } else {
+            throw new RuntimeException("Enrollment not found with id: " + enrollmentId);
+        }
     }
 }
