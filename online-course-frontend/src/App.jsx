@@ -5,6 +5,7 @@ import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import Dashboard from './components/dashboard/shared/Dashboard' // Fixed: Only one Dashboard import
 import MyEnrollments from './components/dashboard/student/MyEnrollments' // Add this import
+import MyCourses from './components/dashboard/instructor/MyCourses';
 import TestPage from './components/test/TestPage'
 import TestResults from './components/test/TestResults'
 import ErrorBoundary from './components/shared/ErrorBoundary'
@@ -53,7 +54,9 @@ const AppLayout = () => {
             
             {/* Instructor Route (if needed) */}
             <Route path="/enrollments" element={<ProtectedRoute><div>Instructor Courses Page</div></ProtectedRoute>} />
-  
+            <Route path="/my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
+            
+            {/* Catch-all Route */} 
             <Route path="*" element={<NotFound />} />
           </Routes>
         </ErrorBoundary>

@@ -12,6 +12,16 @@ const CourseForm = ({
   const durations = ['4 weeks', '6 weeks', '8 weeks', '12 weeks', '16 weeks', '24 weeks', '3 months', '6 months', '1 year'];
   const batches = ['Spring 2024', 'Summer 2024', 'Fall 2024', 'Winter 2024', 'January Batch', 'June Batch', 'New Batch'];
 
+  // Safe default values to prevent undefined errors
+  const safeNewCourse = newCourse || {
+    title: '',
+    duration: '',
+    category: 'BACKEND',
+    price: 0,
+    level: 'BEGINNER',
+    batch: 'New Batch'
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(e);
@@ -19,7 +29,7 @@ const CourseForm = ({
 
   const handleInputChange = (field, value) => {
     setNewCourse(prev => ({
-      ...prev,
+      ...(prev || {}), // Handle case where prev might be undefined
       [field]: value
     }));
   };
@@ -34,7 +44,7 @@ const CourseForm = ({
             <input
               type="text"
               className="form-input"
-              value={newCourse.title}
+              value={safeNewCourse.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Enter course title"
               required
@@ -47,7 +57,7 @@ const CourseForm = ({
             <label className="form-label">Duration *</label>
             <select
               className="form-select"
-              value={newCourse.duration}
+              value={safeNewCourse.duration}
               onChange={(e) => handleInputChange('duration', e.target.value)}
               required
               disabled={loading}
@@ -64,7 +74,7 @@ const CourseForm = ({
             <label className="form-label">Category *</label>
             <select
               className="form-select"
-              value={newCourse.category}
+              value={safeNewCourse.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
               required
               disabled={loading}
@@ -81,7 +91,7 @@ const CourseForm = ({
             <label className="form-label">Difficulty Level *</label>
             <select
               className="form-select"
-              value={newCourse.level}
+              value={safeNewCourse.level}
               onChange={(e) => handleInputChange('level', e.target.value)}
               required
               disabled={loading}
@@ -99,7 +109,7 @@ const CourseForm = ({
             <input
               type="number"
               className="form-input no-spinner"
-              value={newCourse.price}
+              value={safeNewCourse.price}
               onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
               placeholder="0.00"
               min="0"
@@ -113,7 +123,7 @@ const CourseForm = ({
             <label className="form-label">Batch Name</label>
             <select
               className="form-select"
-              value={newCourse.batch}
+              value={safeNewCourse.batch}
               onChange={(e) => handleInputChange('batch', e.target.value)}
               disabled={loading}
             >
@@ -129,7 +139,7 @@ const CourseForm = ({
           <button 
             type="submit" 
             className="submit-btn primary-btn"
-            disabled={loading || !newCourse.title || !newCourse.duration}
+            disabled={loading || !safeNewCourse.title || !safeNewCourse.duration}
           >
             {loading ? (
               <>

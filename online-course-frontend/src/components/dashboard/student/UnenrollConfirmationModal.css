@@ -1,0 +1,198 @@
+/* components/shared/UnenrollConfirmationModal.css */
+.unenroll-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+
+.unenroll-modal-container {
+  max-width: 500px;
+  width: 100%;
+  animation: slideUp 0.4s ease-out;
+}
+
+.unenroll-modal-glass {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 0;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform-origin: center;
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  padding: 25px 25px 0;
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-content {
+  padding: 20px 25px;
+  text-align: center;
+}
+
+.warning-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.warning-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ef4444;
+  margin: 0 0 10px 0;
+}
+
+.warning-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.warning-message strong {
+  color: #ef4444;
+}
+
+.warning-details {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: left;
+  margin-top: 15px;
+}
+
+.warning-details p {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+}
+
+.warning-details ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-secondary);
+}
+
+.warning-details li {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.warning-details li:last-child {
+  margin-bottom: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 25px 25px;
+}
+
+.confirm-unenroll-btn {
+  flex: 1;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.confirm-unenroll-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.confirm-unenroll-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancel-unenroll-btn {
+  flex: 1;
+  padding: 14px 20px;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.cancel-unenroll-btn:hover:not(:disabled) {
+  background: var(--bg-surface);
+  transform: translateY(-1px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .unenroll-modal-container {
+    max-width: 90%;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .warning-details {
+    padding: 12px;
+  }
+  
+  .warning-details li {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .unenroll-modal-container {
+    max-width: 95%;
+  }
+  
+  .modal-content {
+    padding: 15px 20px;
+  }
+  
+  .modal-actions {
+    padding: 15px 20px 20px;
+  }
+}

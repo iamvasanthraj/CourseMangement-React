@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { enrollmentAPI } from '../../services/api'; // Use enrollmentAPI instead
+import { enrollmentAPI } from '../../services/api';
 import './RatingModal.css';
 
-const RatingModal = ({ enrollment, onClose, onRatingUpdated }) => {
+const RatingModal = ({ enrollment, course, user, onClose, onRatingUpdated }) => {
   const [stars, setStars] = useState(0);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,8 +22,9 @@ const RatingModal = ({ enrollment, onClose, onRatingUpdated }) => {
   }, [enrollment]);
 
   const submitRating = async () => {
-    if (!enrollment?.id) {
-      setError('No enrollment selected');
+    // Validate we have the minimum required data
+    if (!enrollment?.id && !enrollment?.enrollmentId) {
+      setError('No enrollment information available');
       return;
     }
 
@@ -36,14 +37,39 @@ const RatingModal = ({ enrollment, onClose, onRatingUpdated }) => {
     setError('');
 
     try {
-      // Use enrollmentAPI to complete course with rating
-      const response = await enrollmentAPI.completeCourse(enrollment.id, {
-        rating: stars,
-        feedback: comment
+      // Get the enrollment ID from any possible property
+      const enrollmentId = enrollment?.id || enrollment?.enrollmentId;
+      
+      console.log('📝 Submitting rating for enrollment:', {
+        enrollmentId,
+        stars,
+        comment,
+        user: user?.userId || user?.id,
+        course: course?.id || enrollment?.courseId
       });
 
+      // Use enrollmentAPI to complete course with rating
+      const response = await enrollmentAPI.completeCourse(enrollmentId, {
+        rating: stars,
+        feedback: comment,
+        studentId: user?.userId || user?.id,
+        studentEmail: user?.email,
+        studentName: user?.username,
+        courseId: course?.id || enrollment?.courseId,
+        courseTitle: course?.title || enrollment?.courseTitle,
+        completed: true,
+        completionDate: new Date().toISOString()
+      });
+
+      console.log('✅ Rating submitted successfully:', response);
+
       // Callback to parent component
-      onRatingUpdated && onRatingUpdated(response);
+      onRatingUpdated && onRatingUpdated({
+        enrollmentId,
+        rating: stars,
+        feedback: comment,
+        ...response
+      });
 
       setSubmitted(true);
       setTimeout(() => {
@@ -51,8 +77,8 @@ const RatingModal = ({ enrollment, onClose, onRatingUpdated }) => {
         onClose();
       }, 1500);
     } catch (err) {
-      console.error('Rating submission error:', err);
-      setError('Failed to submit rating. Please try again.');
+      console.error('❌ Rating submission error:', err);
+      setError(err.response?.data?.message || 'Failed to submit rating. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -63,7 +89,35 @@ const RatingModal = ({ enrollment, onClose, onRatingUpdated }) => {
     if (error) setError('');
   };
 
-  if (!enrollment) {
+  // Get course information from any available source
+  const getCourseInfo = () => {
+    if (course) {
+      return {
+        title: course.title,
+        instructor: course.instructorName || 'Instructor'
+      };
+    }
+    if (enrollment?.course) {
+      return {
+        title: enrollment.course.title,
+        instructor: enrollment.course.instructorName || 'Instructor'
+      };
+    }
+    if (enrollment?.courseTitle) {
+      return {
+        title: enrollment.courseTitle,
+        instructor: enrollment.instructorName || 'Instructor'
+      };
+    }
+    return {
+      title: 'This Course',
+      instructor: 'Instructor'
+    };
+  };
+
+  const courseInfo = getCourseInfo();
+
+  if (!enrollment && !course) {
     return null;
   }
 
@@ -77,11 +131,16 @@ const RatingModal = ({ enrollment, onClose, onRatingUpdated }) => {
           </div>
 
           <div className="course-info">
-            <h3>{enrollment.course?.title}</h3>
-            <p>by {enrollment.course?.instructor?.name || 'Instructor'}</p>
+            <h3>{courseInfo.title}</h3>
+            <p>by {courseInfo.instructor}</p>
             <p className="completion-status">
-              {enrollment.completed ? 'Course Completed ✅' : 'Marking as completed...'}
+              {enrollment?.completed ? 'Course Completed ✅' : 'Marking as completed...'}
             </p>
+            {user && (
+              <p className="user-info">
+                Rating as: {user.username} ({user.email})
+              </p>
+            )}
           </div>
 
           {error && <div className="error-message">{error}</div>}

@@ -97,13 +97,30 @@
   cursor: not-allowed;
 }
 
+/* Add to CourseForm.css */
 .loading-spinner {
+  display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
+  border: 2px solid #ffffff;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  border-top-color: transparent;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  -moz-appearance: textfield;
 }
 
 @keyframes spin {

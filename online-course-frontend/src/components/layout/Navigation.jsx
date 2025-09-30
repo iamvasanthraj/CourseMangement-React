@@ -1,3 +1,4 @@
+// components/layout/Navigation.jsx
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -21,14 +22,14 @@ const Navigation = () => {
 
   // Role-specific menu items
   const roleMenuItems = [
-    // For STUDENTS: Show "My Enrollments" instead of generic "Enrollments"
+    // For STUDENTS: Show "My Enrollments"
     ...(user?.role === 'STUDENT' ? [
       { path: '/my-enrollments', label: 'My Enrollments', icon: '🎓' }
     ] : []),
     
     // For INSTRUCTORS: Show "My Courses"
     ...(user?.role === 'INSTRUCTOR' ? [
-      { path: '/enrollments', label: 'My Courses', icon: '📚' }
+      { path: '/my-courses', label: 'My Courses', icon: '📚' }
     ] : [])
   ];
 

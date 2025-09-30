@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './CourseCard.css';
 import RatingModal from '../../shared/RatingModal';
 import TestModal from '../../test/TestModal';
+import UnenrollConfirmationModal from '../../dashboard/student/UnenrollConfirmationModal'; // ADD THIS IMPORT
 import { getRandomQuestions } from '../../../utils/questionUtils';
 
 const CourseCard = ({ 
@@ -18,6 +19,7 @@ const CourseCard = ({
 }) => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
+  const [showUnenrollModal, setShowUnenrollModal] = useState(false); // ADD THIS STATE
   const [isUnenrolling, setIsUnenrolling] = useState(false);
   const navigate = useNavigate();
 
@@ -100,31 +102,25 @@ const CourseCard = ({
     navigate('/test', { state: testData });
   };
 
-  const handleUnenrollClick = async () => {
+  // Show unenroll confirmation modal
+  const handleUnenrollClick = () => {
+    setShowUnenrollModal(true);
+  };
+
+  // Handle confirmed unenrollment
+  const handleConfirmUnenroll = async () => {
     if (!onUnenroll) {
       console.error('❌ Unenroll function not provided');
-      alert('Unenroll functionality not available.');
       return;
     }
 
     if (!course?.id) {
       console.error('❌ Missing course ID');
-      alert('Course information missing.');
       return;
     }
 
     if (!user?.userId) {
       console.error('❌ Missing user ID');
-      alert('User information missing.');
-      return;
-    }
-
-    // Confirm unenrollment
-    const confirmUnenroll = window.confirm(
-      `Are you sure you want to unenroll from "${course.title}"? You will lose all progress.`
-    );
-
-    if (!confirmUnenroll) {
       return;
     }
 
@@ -142,7 +138,7 @@ const CourseCard = ({
       await onUnenroll({
         courseId: course.id,
         userId: user.userId,
-        enrollmentId: enrollmentId, // Pass if available, but not required
+        enrollmentId: enrollmentId,
         courseTitle: course.title
       });
 
@@ -153,7 +149,13 @@ const CourseCard = ({
       // Error is handled by the parent component
     } finally {
       setIsUnenrolling(false);
+      setShowUnenrollModal(false);
     }
+  };
+
+  // Handle canceled unenrollment
+  const handleCancelUnenroll = () => {
+    setShowUnenrollModal(false);
   };
 
   const handleCertificateClick = () => {
@@ -161,10 +163,11 @@ const CourseCard = ({
     // Add certificate download logic here
   };
 
-  const handleRatingUpdated = () => {
+  const handleRatingUpdated = (ratingData) => {
     setShowRatingModal(false);
-    if (onRate) {
-      onRate();
+    if (onRate && course?.id) {
+      // Pass course ID and rating data to parent
+      onRate(course.id, ratingData?.rating || 0, ratingData);
     }
   };
 
@@ -292,20 +295,33 @@ const CourseCard = ({
         )}
       </div>
 
+      {/* Rating Modal */}
       {showRatingModal && (
         <RatingModal
+          enrollment={enrollmentData}
           course={course}
-          studentId={user?.userId}
+          user={user}
           onClose={() => setShowRatingModal(false)}
           onRatingUpdated={handleRatingUpdated}
         />
       )}
 
+      {/* Test Modal */}
       {showTestModal && (
         <TestModal
           questions={getRandomQuestions(10)}
           onConfirm={handleConfirmTest}
           onClose={() => setShowTestModal(false)}
+        />
+      )}
+
+      {/* Unenroll Confirmation Modal */}
+      {showUnenrollModal && (
+        <UnenrollConfirmationModal
+          courseTitle={course.title}
+          onConfirm={handleConfirmUnenroll}
+          onCancel={handleCancelUnenroll}
+          loading={isUnenrolling}
         />
       )}
     </div>

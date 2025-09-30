@@ -11,45 +11,54 @@ const EnrollmentsSection = ({
   onStartTest,
   showMessage
 }) => {
-  // Calculate stats - handle missing data gracefully
+  // Stats
   const totalEnrollments = enrollments.length;
   const completedCount = enrollments.filter(e => e?.completed).length;
   const inProgressCount = enrollments.filter(e => !e?.completed).length;
   const ratedCount = enrollments.filter(e => e?.rating).length;
 
-  // Get enrollment ID from various possible properties
+  // Helpers
   const getEnrollmentId = (enrollment) => {
     return enrollment?.enrollmentId || enrollment?.id;
   };
 
-  // Get course object from enrollment
   const getCourseFromEnrollment = (enrollment) => {
-    if (enrollment.course) {
-      return enrollment.course;
-    }
-    
-    // If course is not nested, create a course object from enrollment properties
+    if (enrollment.course) return enrollment.course;
     return {
       id: enrollment.courseId,
       title: enrollment.courseTitle,
       category: enrollment.courseCategory,
       instructorName: enrollment.instructorName,
-      // Add other course properties as needed
     };
   };
 
-  // Enhanced unenroll handler with success message
+  // Enhanced Unenroll handler
   const handleUnenrollWithMessage = async (unenrollData) => {
     try {
       await onUnenroll(unenrollData);
-      
-      // Show success message
       if (showMessage) {
-        showMessage('success', `✅ Successfully unenrolled from "${unenrollData.courseTitle}"! The course has been returned to available courses.`);
+        showMessage(
+          'success',
+          `✅ Successfully unenrolled from "${unenrollData.courseTitle}"! The course has been returned to available courses.`
+        );
       }
     } catch (error) {
       console.error('Unenroll error:', error);
-      // Error is already handled by the parent component
+    }
+  };
+
+  // Enhanced Rate handler
+  const handleRateWithMessage = async (courseId, rating, ratingData) => {
+    try {
+      await onRate(courseId, rating, ratingData);
+      if (showMessage) {
+        showMessage('success', '⭐ Rating submitted successfully!');
+      }
+    } catch (error) {
+      console.error('Rating error:', error);
+      if (showMessage) {
+        showMessage('error', 'Failed to submit rating');
+      }
     }
   };
 
@@ -71,8 +80,6 @@ const EnrollmentsSection = ({
   return (
     <div className="quantum-enrollments-section">
       <div className="section-header">
-        {/* <h2 className="quantum-text-gradient">🎓 My Enrollments ({totalEnrollments})</h2> */}
-        
         {/* Quick Stats Section */}
         <div className="enrollments-stats-grid">
           <div className="stat-card quantum-glass">
@@ -124,7 +131,7 @@ const EnrollmentsSection = ({
               user={user}
               isEnrolled={true}
               onStartTest={onStartTest}
-              onRate={onRate}
+              onRate={handleRateWithMessage}  
               onUnenroll={handleUnenrollWithMessage}
               enrollmentData={{
                 ...enrollment,
