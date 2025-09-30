@@ -7,6 +7,7 @@ import Dashboard from './components/dashboard/shared/Dashboard'
 import MyEnrollments from './components/dashboard/student/MyEnrollments'
 import MyCourses from './components/dashboard/instructor/MyCourses';
 import TestPage from './components/test/TestPage'
+import AllCoursesPage from './components/dashboard/student/AllCoursesPage';
 import ProfilePage from './components/dashboard/shared/ProfilePage';
 import Certificate from './components/shared/Certificate';
 import TestResults from './components/test/TestResults'
@@ -74,6 +75,8 @@ const AppLayout = () => {
             <Route path="/enrollments" element={<ProtectedRoute><div>Instructor Courses Page</div></ProtectedRoute>} />
             <Route path="/my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/all-courses" element={<AllCoursesPage />} />
+
             {/* Catch-all Route */} 
             <Route path="*" element={<NotFound />} />
           </Routes>

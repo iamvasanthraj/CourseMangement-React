@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import CourseCard from './CourseCard';
 import { useDashboard } from '../../../hooks/useDashboard';
+import './StudentDashboard.css';
 
 const StudentDashboard = ({ filter, setFilter, categories }) => {
   const {
@@ -30,7 +31,6 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
   const handleEnrollWithMessage = async (courseId) => {
     try {
       await handleEnroll(courseId);
-      // Find the course name for the success message
       const course = courses.find(c => c.id === courseId);
       if (course) {
         showMessage('success', `🎉 Successfully enrolled in "${course.title}"! Check "My Enrollments" to track your progress.`);
@@ -38,7 +38,6 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
         showMessage('success', '🎉 Successfully enrolled in the course!');
       }
     } catch (error) {
-      // Error message is already handled in handleEnroll
       console.error('Enrollment error:', error);
     }
   };
@@ -62,17 +61,6 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
               ))}
             </select>
           </div>
-          {/* <div className="controls-right">
-            <span className="results-count">
-              {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''} available
-            </span>
-            <button 
-              onClick={() => navigate('/my-enrollments')}
-              className="action-btn primary-btn"
-            >
-              🎓 My Enrollments ({enrollments.length})
-            </button>
-          </div> */}
         </div>
       </div>
       
@@ -81,7 +69,7 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
           <div className="quantum-loading">Loading courses...</div>
         </div>
       ) : (
-        <div className="courses-grid">
+        <div className="courses-grid"> {/* This will now show 2 cards per row */}
           {filteredCourses.map(course => (
             <CourseCard 
               key={course.id}
