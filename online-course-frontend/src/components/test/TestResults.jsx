@@ -1,5 +1,7 @@
+// components/test/TestResults.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useDashboard } from '../../hooks/useDashboard';
 import './TestResults.css';
 
 const TestResults = () => {
@@ -7,6 +9,9 @@ const TestResults = () => {
   const navigate = useNavigate();
   const results = location.state;
   const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Use the dashboard hook
+  const { handleTestCompletion, user, enrollments } = useDashboard();
 
   useEffect(() => {
     if (!results) {
@@ -14,13 +19,66 @@ const TestResults = () => {
       return;
     }
 
-    // Show confetti if passed
+    // Show confetti if passed and process test completion
     if (results.passed) {
       setShowConfetti(true);
+      
+      // Process test completion and generate certificate data
+      const processResults = async () => {
+        try {
+          await handleTestCompletion(results, results.courseId);
+        } catch (error) {
+          console.error('Error processing test results:', error);
+        }
+      };
+      
+      processResults();
+      
       const timer = setTimeout(() => setShowConfetti(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [results, navigate]);
+  }, [results, navigate, handleTestCompletion]);
+
+  const handleViewCertificate = () => {
+    // Find the enrollment for this course
+    const enrollment = enrollments.find(e => e.courseId === results.courseId);
+    
+    if (enrollment && enrollment.completed) {
+      const certificateData = {
+        studentName: user?.username || 'Student Name',
+        studentId: user?.userId || 'N/A',
+        course: {
+          title: results.courseTitle,
+          category: enrollment.courseCategory || 'General',
+          instructorName: enrollment.instructorName || 'Instructor'
+        },
+        completionDate: enrollment.completionDate || new Date(),
+        testScore: results.correctAnswers,
+        totalQuestions: results.totalQuestions,
+        percentage: results.score,
+        passed: results.passed
+      };
+      
+      navigate('/certificate', { state: { enrollment: certificateData } });
+    } else {
+      // Fallback certificate data
+      const fallbackCertificate = {
+        studentName: user?.username || 'Student Name',
+        studentId: user?.userId || 'N/A',
+        course: {
+          title: results.courseTitle,
+          category: 'General',
+          instructorName: 'Course Instructor'
+        },
+        completionDate: new Date(),
+        testScore: results.correctAnswers,
+        totalQuestions: results.totalQuestions,
+        percentage: results.score,
+        passed: results.passed
+      };
+      navigate('/certificate', { state: { enrollment: fallbackCertificate } });
+    }
+  };
 
   if (!results) {
     return (
@@ -33,7 +91,7 @@ const TestResults = () => {
     );
   }
 
-  const { score, totalQuestions, correctAnswers, passed, courseTitle } = results;
+  const { score, totalQuestions, correctAnswers, passed, courseTitle, courseId } = results;
 
   const getFeedbackMessage = () => {
     if (score >= 90) return "Outstanding! You've mastered this material!";
@@ -130,10 +188,10 @@ const TestResults = () => {
           
           {passed && (
             <button 
-              onClick={() => navigate('/enrollments')}
+              onClick={handleViewCertificate}
               className="quantum-btn quantum-btn-secondary"
             >
-              🎓 View Certificates
+              🎓 View Certificate
             </button>
           )}
         </div>

@@ -10,8 +10,9 @@ export const useDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [enrollingCourseId, setEnrollingCourseId] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [certificateData, setCertificateData] = useState(null); // ✅ ADD: Certificate state
   
-  // ✅ ADD THIS: State for new course creation
+  // State for new course creation
   const [newCourse, setNewCourse] = useState({
     title: '',
     duration: '',
@@ -60,26 +61,196 @@ export const useDashboard = () => {
     await loadCourses();
   }, [loadCourses]);
 
-  // ✅ ADD THIS: Course creation handler for instructors
- // In handleCreateCourse function, remove description validation:
-const handleCreateCourse = async (e) => {
-  e.preventDefault();
-  
-  if (!user?.userId) {
-    showMessage('error', 'User not authenticated');
-    return;
-  }
+  // ✅ ADD: Generate certificate data from test results
+  const generateCertificateData = useCallback((testResults, courseData) => {
+    if (!user || !testResults.passed) return null;
+    
+    return {
+      studentName: user.username || 'Student Name',
+      studentId: user.userId || 'N/A',
+      course: {
+        title: courseData?.title || testResults.courseTitle,
+        category: courseData?.category || 'General',
+        instructorName: courseData?.instructorName || 'Instructor'
+      },
+      completionDate: new Date(),
+      testScore: testResults.correctAnswers,
+      totalQuestions: testResults.totalQuestions,
+      percentage: testResults.score,
+      passed: testResults.passed
+    };
+  }, [user]);
 
-  // Validate required fields (REMOVED description validation)
-  if (!newCourse.title.trim()) {
-    showMessage('error', 'Course title is required');
-    return;
-  }
 
-  if (!newCourse.duration.trim()) {
-    showMessage('error', 'Course duration is required');
-    return;
+// Add this to your useDashboard.js to debug the enrollment data
+const debugEnrollments = () => {
+  console.log('🔍 DEBUG - Current Enrollments Data:', enrollments);
+  enrollments.forEach((enrollment, index) => {
+    console.log(`🔍 Enrollment ${index + 1}:`, {
+      id: enrollment.id,
+      enrollmentId: enrollment.enrollmentId,
+      courseTitle: enrollment.courseTitle,
+      completed: enrollment.completed,
+      testScore: enrollment.testScore,
+      totalQuestions: enrollment.totalQuestions,
+      percentage: enrollment.percentage,
+      hasTestData: enrollment.testScore !== undefined
+    });
+  });
+};
+
+// In hooks/useDashboard.js - update handleTestCompletion
+const handleTestCompletion = async (testResults, courseId) => {
+  try {
+    console.log('🎯 START: handleTestCompletion', { 
+      testResults, 
+      courseId,
+      correctAnswers: testResults.correctAnswers,
+      totalQuestions: testResults.totalQuestions,
+      score: testResults.score
+    });
+    
+    console.log('🔍 Current enrollments count:', enrollments.length);
+    console.log('🔍 All enrollments:', enrollments.map(e => ({
+      id: e.id,
+      enrollmentId: e.enrollmentId,
+      courseId: e.courseId,
+      courseTitle: e.courseTitle,
+      completed: e.completed
+    })));
+    
+    // Find the enrollment for this course
+    const enrollment = enrollments.find(e => e.courseId === courseId);
+    
+    console.log('🔍 Enrollment found for course:', enrollment);
+    
+    if (enrollment?.id || enrollment?.enrollmentId) {
+      const enrollmentIdToUse = enrollment.id || enrollment.enrollmentId;
+      
+      console.log('🔄 Updating enrollment with API call:', {
+        enrollmentId: enrollmentIdToUse,
+        testScore: testResults.correctAnswers,
+        totalQuestions: testResults.totalQuestions,
+        percentage: testResults.score,
+        passed: testResults.passed
+      });
+
+      // Update enrollment via API
+      const updateData = {
+        completed: true,
+        testScore: testResults.correctAnswers,
+        totalQuestions: testResults.totalQuestions,
+        percentage: testResults.score,
+        completionDate: new Date().toISOString()
+      };
+      
+      console.log('📤 API Payload for completeCourse:', updateData);
+      
+      // Call the API
+      console.log('📞 Calling enrollmentAPI.completeCourse...');
+      const result = await enrollmentAPI.completeCourse(enrollmentIdToUse, updateData);
+      console.log('✅ API Response from completeCourse:', result);
+      
+      // Force refresh enrollments to get updated data
+      console.log('🔄 Refreshing enrollments after API call...');
+      await refreshEnrollments();
+      
+      console.log('✅ END: handleTestCompletion - Success');
+      
+      // Show success message
+      showMessage('success', `Test completed! Score: ${testResults.correctAnswers}/${testResults.totalQuestions} (${testResults.score}%)`);
+      
+      return result;
+      
+    } else {
+      console.warn('❌ No enrollment found for course:', courseId);
+      console.log('Available enrollments:', enrollments.map(e => ({
+        id: e.id,
+        enrollmentId: e.enrollmentId,
+        courseId: e.courseId,
+        courseTitle: e.courseTitle,
+        completed: e.completed
+      })));
+      
+      showMessage('error', 'Could not find enrollment to update test results');
+      return null;
+    }
+    
+  } catch (error) {
+    console.error('❌ ERROR: handleTestCompletion failed:', error);
+    
+    // Show specific error message based on error type
+    if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
+      showMessage('error', 'Network error: Could not connect to server');
+    } else if (error.message.includes('404')) {
+      showMessage('error', 'Enrollment not found on server');
+    } else if (error.message.includes('500')) {
+      showMessage('error', 'Server error: Please try again later');
+    } else {
+      showMessage('error', 'Failed to save test results: ' + error.message);
+    }
+    
+    throw error;
   }
+};
+
+
+  // ✅ ADD: View certificate for completed course
+  const handleViewCertificate = useCallback((enrollmentId) => {
+    const enrollment = enrollments.find(e => e.id === enrollmentId);
+    if (!enrollment) {
+      showMessage('error', 'Enrollment not found');
+      return null;
+    }
+    
+    if (!enrollment.completed) {
+      showMessage('error', 'Course not completed yet');
+      return null;
+    }
+    
+    const certificate = {
+      studentName: user?.username || enrollment.studentName,
+      studentId: user?.userId || enrollment.studentId,
+      course: {
+        title: enrollment.course?.title || 'Course Title',
+        category: enrollment.course?.category || 'General',
+        instructorName: enrollment.course?.instructorName || 'Instructor'
+      },
+      completionDate: enrollment.completionDate || new Date(),
+      testScore: enrollment.testScore || 0,
+      totalQuestions: enrollment.totalQuestions || 0,
+      percentage: enrollment.percentage || 0,
+      passed: true
+    };
+    
+    setCertificateData(certificate);
+    return certificate;
+  }, [enrollments, user, showMessage]);
+
+  // ✅ ADD: Clear certificate data
+  const clearCertificateData = useCallback(() => {
+    setCertificateData(null);
+  }, []);
+
+  // Course creation handler for instructors
+  const handleCreateCourse = async (e) => {
+    e.preventDefault();
+    
+    if (!user?.userId) {
+      showMessage('error', 'User not authenticated');
+      return;
+    }
+
+    // Validate required fields
+    if (!newCourse.title.trim()) {
+      showMessage('error', 'Course title is required');
+      return;
+    }
+
+    if (!newCourse.duration.trim()) {
+      showMessage('error', 'Course duration is required');
+      return;
+    }
 
     try {
       setLoading(true);
@@ -209,49 +380,47 @@ const handleCreateCourse = async (e) => {
     }
   };
 
-  // hooks/useDashboard.js - Add these functions to the hook
+  // Delete course function
+  const handleDeleteCourse = async (courseId, courseTitle) => {
+    try {
+      setLoading(true);
+      
+      await coursesAPI.delete(courseId);
+      
+      showMessage('success', `✅ Course "${courseTitle}" deleted successfully!`);
+      
+      // Refresh courses list
+      await loadCourses();
+      
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      showMessage('error', error.response?.data?.message || 'Failed to delete course');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// ✅ ADD: Delete course function
-const handleDeleteCourse = async (courseId, courseTitle) => {
-  try {
-    setLoading(true);
-    
-    await coursesAPI.delete(courseId);
-    
-    showMessage('success', `✅ Course "${courseTitle}" deleted successfully!`);
-    
-    // Refresh courses list
-    await loadCourses();
-    
-  } catch (error) {
-    console.error('Error deleting course:', error);
-    showMessage('error', error.response?.data?.message || 'Failed to delete course');
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
-
-// ✅ ADD: Update course function
-const handleUpdateCourse = async (courseId, updatedData) => {
-  try {
-    setLoading(true);
-    
-    await coursesAPI.update(courseId, updatedData);
-    
-    showMessage('success', '✅ Course updated successfully!');
-    
-    // Refresh courses list
-    await loadCourses();
-    
-  } catch (error) {
-    console.error('Error updating course:', error);
-    showMessage('error', error.response?.data?.message || 'Failed to update course');
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
+  // Update course function
+  const handleUpdateCourse = async (courseId, updatedData) => {
+    try {
+      setLoading(true);
+      
+      await coursesAPI.update(courseId, updatedData);
+      
+      showMessage('success', '✅ Course updated successfully!');
+      
+      // Refresh courses list
+      await loadCourses();
+      
+    } catch (error) {
+      console.error('Error updating course:', error);
+      showMessage('error', error.response?.data?.message || 'Failed to update course');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleStartTest = (course) => {
     console.log('Starting test for course:', course.title);
@@ -284,9 +453,12 @@ const handleUpdateCourse = async (courseId, updatedData) => {
     loading,
     message,
     enrollingCourseId,
-    newCourse, // ✅ ADD THIS
+    newCourse,
+    certificateData, // ✅ ADD: Export certificate data
+    
     // Setters
-    setNewCourse, // ✅ ADD THIS
+    setNewCourse,
+    
     // Functions
     showMessage,
     handleEnroll,
@@ -295,7 +467,10 @@ const handleUpdateCourse = async (courseId, updatedData) => {
     handleStartTest,
     handleCreateCourse, 
     handleDeleteCourse, 
-  handleUpdateCourse, 
+    handleUpdateCourse,
+    handleTestCompletion, // ✅ ADD: Test completion handler
+    handleViewCertificate, // ✅ ADD: View certificate handler
+    clearCertificateData, // ✅ ADD: Clear certificate handler
     refreshEnrollments,
     refreshCourses
   };

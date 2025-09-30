@@ -15,10 +15,10 @@ const Navigation = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    navigate('/profile'); // Simply navigate to profile page
   };
 
-  // Role-specific menu items (Profile removed from here since it's at top)
+  // Role-specific menu items
   const roleMenuItems = [
     // For STUDENTS: Show "My Enrollments"
     ...(user?.role === 'STUDENT' ? [
@@ -31,9 +31,10 @@ const Navigation = () => {
     ] : [])
   ];
 
-  // Base menu items (without Profile since it's at top)
+  // Base menu items
   const baseMenuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
+    { path: '/profile', label: 'Profile', icon: '👤' } // Profile in menu
   ];
 
   // Combine all menu items
@@ -43,13 +44,13 @@ const Navigation = () => {
 
   return (
     <aside className="quantum-sidebar">
-      {/* Profile Section at the Top */}
+      {/* Profile Section at the Top - Clickable to go to Profile Page */}
       <div className="sidebar-profile-section" onClick={handleProfileClick}>
         <div className="profile-avatar-large">
           {user?.username?.charAt(0)?.toUpperCase() || 'U'}
         </div>
         <div className="profile-info-compact">
-          <h3 className="profile-name">{user?.username}</h3>
+          <h6 className="profile-name">{user?.username}</h6>
           <p className="profile-role-badge">
             <span className="role-icon">
               {user?.role === 'INSTRUCTOR' ? '👨‍🏫' : '🎓'}
@@ -59,7 +60,7 @@ const Navigation = () => {
           <p className="profile-email">{user?.email}</p>
         </div>
         <div className="profile-edit-hint">
-          <span>👆 Click to edit profile</span>
+          {/* <span>👆 Click to view profile</span> */}
         </div>
       </div>
 

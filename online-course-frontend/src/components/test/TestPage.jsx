@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { enrollmentAPI } from '../../services/api';
+import { useDashboard } from '../../hooks/useDashboard';
 import './TestPage.css';
 
 const TestPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { handleTestCompletion } = useDashboard();
   
   const testData = location.state;
   
@@ -97,7 +98,15 @@ const TestPage = () => {
         isTemporarySession: testData.isTemporarySession
       });
 
-      // For temporary sessions (without enrollment ID), just show results
+      // Store test scores in localStorage as backup
+      storeTestScoresLocally(testData.courseId, {
+        correctAnswers,
+        totalQuestions: testData.questions.length,
+        score,
+        courseTitle: testData.courseTitle
+      });
+
+      // For temporary sessions, just show results
       if (testData.isTemporarySession) {
         console.log('📝 Temporary test session - showing results only');
         
@@ -116,33 +125,21 @@ const TestPage = () => {
         return;
       }
 
-      // For enrolled users with enrollment ID, submit to backend
-      if (testData.enrollmentId && !testData.isTemporarySession) {
-        console.log('💾 Submitting test results to backend...');
+      // ✅ UPDATED: Use handleTestCompletion for enrolled users
+      if (testData.enrollmentId && !testData.isTemporarySession && handleTestCompletion) {
+        console.log('💾 Using handleTestCompletion to update enrollment...');
         
-        const result = await enrollmentAPI.submitTestResults(testData.enrollmentId, {
+        const testResults = {
           score,
           totalQuestions: testData.questions.length,
           correctAnswers,
-          answers,
-          studentId: testData.studentId,
-          courseId: testData.courseId,
           passed,
-          submittedAt: new Date().toISOString(),
-          timeSpent: (5 * 60) - timeLeft
-        });
+          courseId: testData.courseId,
+          courseTitle: testData.courseTitle
+        };
         
-        console.log('✅ Test results submitted:', result);
-
-        // Mark course as completed if passed
-        if (passed) {
-          try {
-            await enrollmentAPI.markComplete(testData.enrollmentId);
-            console.log('✅ Course marked as completed');
-          } catch (markCompleteError) {
-            console.error('❌ Error marking course as completed:', markCompleteError);
-          }
-        }
+        await handleTestCompletion(testResults, testData.courseId);
+        console.log('✅ Test completion processed');
       }
 
       // Navigate to results page
@@ -177,11 +174,30 @@ const TestPage = () => {
           courseTitle: testData.courseTitle,
           courseId: testData.courseId,
           error: true,
-          errorMessage: error.response?.data?.message || error.message
+          errorMessage: error.message
         }
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Store test scores in localStorage
+  const storeTestScoresLocally = (courseId, testResults) => {
+    try {
+      const TEST_SCORES_KEY = 'course_test_scores';
+      const existingScores = JSON.parse(localStorage.getItem(TEST_SCORES_KEY) || '{}');
+      existingScores[`${courseId}_${testData.studentId}`] = {
+        testScore: testResults.correctAnswers,
+        totalQuestions: testResults.totalQuestions,
+        percentage: testResults.score,
+        timestamp: new Date().toISOString(),
+        courseTitle: testResults.courseTitle
+      };
+      localStorage.setItem(TEST_SCORES_KEY, JSON.stringify(existingScores));
+      console.log('💾 Test scores stored locally:', existingScores);
+    } catch (error) {
+      console.error('❌ Failed to store test scores locally:', error);
     }
   };
 

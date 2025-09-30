@@ -1,3 +1,4 @@
+// components/shared/Certificate.jsx
 import React, { useState, useEffect } from 'react';
 import './Certificate.css';
 
@@ -20,12 +21,11 @@ const Certificate = ({
 
   const {
     studentName = 'Student Name',
-    studentId = 'N/A',
     course = {},
     completionDate = new Date()
   } = enrollment;
 
-  const { title: courseTitle = 'Course Title', category: courseCategory = 'Category', instructorName = 'Instructor Name' } = course;
+  const { title: courseTitle = 'Course Title', instructorName = 'Instructor Name' } = course;
 
   const downloadCertificate = () => {
     const canvas = document.createElement('canvas');
@@ -85,23 +85,19 @@ const Certificate = ({
     context.font = 'bold 40px "Playfair Display", serif';
     context.fillText(`"${courseTitle}"`, canvas.width / 2, 360);
 
-    // Details section
+    // Simple details section
     context.fillStyle = '#475569';
     context.font = '28px "Georgia", serif';
-    context.textAlign = 'left';
+    context.textAlign = 'center';
     
-    const detailsY = 450;
-    context.fillText(`Category: ${courseCategory}`, 200, detailsY);
-    context.fillText(`Instructor: ${instructorName}`, 200, detailsY + 50);
-    context.fillText(`Completed: ${new Date(completionDate).toLocaleDateString('en-US', { 
+    context.fillText(`Instructor: ${instructorName}`, canvas.width / 2, 450);
+    context.fillText(`Completed on: ${new Date(completionDate).toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
-    })}`, 200, detailsY + 100);
-    context.fillText(`Student ID: ${studentId}`, 200, detailsY + 150);
+    })}`, canvas.width / 2, 500);
 
     // Signatures
-    context.textAlign = 'center';
     context.fillStyle = '#64748b';
     context.font = '24px "Georgia", serif';
     
@@ -174,37 +170,23 @@ const Certificate = ({
               <h3 className="course-title">"{courseTitle}"</h3>
             </div>
 
-// In your Certificate.jsx, update the certificate details section:
-<div className="certificate-details">
-  <div className="detail-row">
-    <span className="detail-label">Category:</span>
-    <span className="detail-value">{courseCategory}</span>
-  </div>
-  <div className="detail-row">
-    <span className="detail-label">Instructor:</span>
-    <span className="detail-value">{instructorName}</span>
-  </div>
-  <div className="detail-row">
-    <span className="detail-label">Completed on:</span>
-    <span className="detail-value">
-      {new Date(completionDate).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      })}
-    </span>
-  </div>
-  <div className="detail-row">
-    <span className="detail-label">Test Score:</span>
-    <span className="detail-value">
-      {enrollment.testScore}/{enrollment.totalQuestions} ({enrollment.percentage}%)
-    </span>
-  </div>
-  <div className="detail-row">
-    <span className="detail-label">Student ID:</span>
-    <span className="detail-value">{studentId}</span>
-  </div>
-</div>
+            {/* Simplified Details */}
+            <div className="certificate-details-simple">
+              <div className="detail-item">
+                <span className="detail-label">Instructor:</span>
+                <span className="detail-value">{instructorName}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Completed on:</span>
+                <span className="detail-value">
+                  {new Date(completionDate).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Certificate Footer */}
@@ -245,7 +227,7 @@ const Certificate = ({
         <div className="certificate-actions">
           <button onClick={downloadCertificate} className="download-btn premium-download">
             <span className="download-icon">📥</span>
-            Download High-Quality Certificate
+            Download Certificate
           </button>
           <button onClick={onClose} className="close-certificate">Close Preview</button>
         </div>

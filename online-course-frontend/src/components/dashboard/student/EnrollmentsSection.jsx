@@ -9,6 +9,7 @@ const EnrollmentsSection = ({
   onRate, 
   user, 
   onStartTest,
+  onViewCertificate, // ✅ ADD: Certificate handler
   showMessage
 }) => {
   // Stats
@@ -62,6 +63,21 @@ const EnrollmentsSection = ({
     }
   };
 
+  // ✅ ADD: Certificate handler
+  const handleViewCertificateWithMessage = async (enrollmentId) => {
+    try {
+      const certificate = onViewCertificate(enrollmentId);
+      if (certificate) {
+        showMessage('success', '🎓 Opening certificate...');
+      }
+    } catch (error) {
+      console.error('Certificate error:', error);
+      if (showMessage) {
+        showMessage('error', 'Failed to open certificate');
+      }
+    }
+  };
+
   if (!enrollments.length) {
     return (
       <div className="quantum-enrollments-section">
@@ -104,13 +120,23 @@ const EnrollmentsSection = ({
             </div>
           </div>
           <div className="stat-card quantum-glass">
+  <div className="stat-icon">🏆</div>
+  <div className="stat-content">
+    <div className="stat-number">{completedCount}</div>
+    <div className="stat-label">Certificates Earned</div>
+  </div>
+</div>
+          {/* <div className="stat-card quantum-glass">
             <div className="stat-icon">⭐</div>
             <div className="stat-content">
               <div className="stat-number">{ratedCount}</div>
               <div className="stat-label">Rated</div>
             </div>
-          </div>
+          </div> */}
         </div>
+
+       
+    
       </div>
 
       {/* Course Cards Grid */}
@@ -133,6 +159,7 @@ const EnrollmentsSection = ({
               onStartTest={onStartTest}
               onRate={handleRateWithMessage}  
               onUnenroll={handleUnenrollWithMessage}
+              onViewCertificate={handleViewCertificateWithMessage} // ✅ PASS: Certificate handler
               enrollmentData={{
                 ...enrollment,
                 enrollmentId: enrollmentId,

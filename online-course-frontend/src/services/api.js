@@ -165,25 +165,35 @@ export const coursesAPI = {
   },
 };
 
+// services/api.js - update getStudentEnrollments to handle nested data
+// services/api.js - Complete enrollmentAPI with all methods
 export const enrollmentAPI = {
   getStudentEnrollments: async (studentId) => {
     console.log(`🎓 Fetching enrollments for student: ${studentId}`);
     try {
       const data = await apiCall(`/enrollments/student/${studentId}`);
       
-      // Handle field name mapping
-      const normalizedData = Array.isArray(data) ? data.map(item => ({
-        enrollmentId: item.enrollmentId, // Now matches backend
-        studentId: item.studentId,
-        studentName: item.studentName,
-        courseId: item.courseId,
-        courseTitle: item.courseTitle,
-        courseCategory: item.courseCategory,
-        enrollmentDate: item.enrollmentDate,
-        completed: item.completed,
-        rating: item.rating,
-        feedback: item.feedback
-      })) : [];
+      // Handle field name mapping with fallbacks for missing test score fields
+      const normalizedData = Array.isArray(data) ? data.map(item => {
+        return {
+          enrollmentId: item.enrollmentId || item.id,
+          id: item.id || item.enrollmentId,
+          studentId: item.studentId,
+          studentName: item.studentName,
+          courseId: item.courseId,
+          courseTitle: item.courseTitle,
+          courseCategory: item.courseCategory,
+          enrollmentDate: item.enrollmentDate,
+          completed: item.completed || false,
+          completionDate: item.completionDate,
+          // ✅ CRITICAL: Add fallbacks for missing test score fields
+          testScore: item.testScore || 0,
+          totalQuestions: item.totalQuestions || 10,
+          percentage: item.percentage || 0,
+          rating: item.rating,
+          feedback: item.feedback
+        };
+      }) : [];
       
       console.log(`🎓 Normalized ${normalizedData.length} enrollments`);
       return normalizedData;
@@ -217,11 +227,25 @@ export const enrollmentAPI = {
     });
   },
 
+  // ✅ ADD THIS MISSING METHOD:
   completeCourse: async (enrollmentId, ratingData) => {
-    return apiCall(`/enrollments/${enrollmentId}/complete`, {
-      method: 'PUT',
-      body: JSON.stringify(ratingData),
+    console.log('🎓 Completing course with test scores:', { 
+      enrollmentId, 
+      ratingData
     });
+    
+    try {
+      const result = await apiCall(`/enrollments/${enrollmentId}/complete`, {
+        method: 'PUT',
+        body: JSON.stringify(ratingData),
+      });
+      
+      console.log('✅ completeCourse API Success - Response:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ completeCourse API Error:', error);
+      throw error;
+    }
   },
 };
 
