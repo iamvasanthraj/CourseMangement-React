@@ -2,7 +2,7 @@ import React from 'react';
 import './Certificate.css';
 
 const Certificate = ({
-  enrollment, // pass the enrollment object from Dashboard
+  enrollment,
   onClose = () => {}
 }) => {
   if (!enrollment) return null;

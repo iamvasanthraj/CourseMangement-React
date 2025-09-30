@@ -1,705 +1,342 @@
-/* Dashboard.css - Professional Enhanced Version */
+@import './globals/variables.css';
+@import './globals/reset.css';
+@import './globals/utilities.css';
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/forms.css';
 
-:root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  --dark-bg: #0f0f23;
-  --darker-bg: #0a0a1a;
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0c0;
-  --text-muted: #6c757d;
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.1);
-  --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.2);
-  --shadow-large: 0 15px 50px rgba(0, 0, 0, 0.3);
-  --border-radius: 16px;
-  --border-radius-sm: 8px;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
+/* Quantum Dashboard Layout */
 .quantum-dashboard {
   width: 100%;
   min-height: 100vh;
-  background: var(--dark-bg);
+  background: var(--bg-primary);
   background-image: 
     radial-gradient(at 80% 0%, rgba(120, 119, 198, 0.1) 0px, transparent 50%),
     radial-gradient(at 0% 50%, rgba(120, 119, 198, 0.1) 0px, transparent 50%);
   color: var(--text-primary);
-  padding: 2rem;
-  margin: 0;
-  max-width: 100%;
-  overflow-x: hidden;
-  box-sizing: border-box;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  padding: var(--space-xl);
+  font-family: var(--font-family);
 }
 
-/* Header styles with user role on right side */
-.quantum-user-info {
-  margin-bottom: 3rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: var(--border-radius);
+/* Dashboard Header */
+.dashboard-header {
+  margin-bottom: var(--space-2xl);
+  padding: var(--space-xl);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border-primary);
   position: relative;
   overflow: hidden;
-  max-width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
 }
 
-.quantum-user-info::before {
+.dashboard-header::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: var(--primary-gradient);
+  background: var(--gradient-primary);
   opacity: 0.6;
 }
 
-.user-info-left {
-  flex: 1;
-  min-width: 200px;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
 }
 
-.quantum-glow-text {
-  font-size: 3rem;
-  font-weight: 800;
-  background: var(--primary-gradient);
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 
-    0 0 30px rgba(102, 126, 234, 0.5),
-    0 0 60px rgba(102, 126, 234, 0.3);
-  margin-bottom: 0.5rem;
-  position: relative;
-  display: inline-block;
+  text-shadow: var(--shadow-glow);
   letter-spacing: -0.02em;
 }
 
-.user-info-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.quantum-user-role {
+.page-subtitle {
   color: var(--text-secondary);
-  font-size: 1.1rem;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.75rem 1.5rem;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-  min-width: 120px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
 }
 
-.user-details {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Dashboard Sections */
+.dashboard-section {
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--border-primary);
+  backdrop-filter: blur(10px);
 }
 
-/* Section headers */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  width: 100%;
+  margin-bottom: var(--space-lg);
+  gap: var(--space-md);
   flex-wrap: wrap;
-  gap: 1.5rem;
-  max-width: 100%;
-  padding: 0 0.5rem;
 }
 
-
-.quantum-text-gradient {
-  margin:20px;
-  font-size: 2.2rem;
-  font-weight: 700;
-  background: var(--secondary-gradient);
+.section-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  background: linear-gradient(135deg, #fff, #00f5ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  position: relative;
-  display: inline-block;
-  letter-spacing: -0.01em;
+  margin: 0;
 }
 
-.quantum-text-gradient::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 50%;
-  height: 2px;
-  background: var(--secondary-gradient);
-  border-radius: 2px;
-}
-
-/* Filter styles */
-.quantum-filters {
+.section-controls {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--space-lg);
   flex-wrap: wrap;
-  max-width: 100%;
 }
 
-.quantum-filter-select {
+/* Filter Styles */
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  color: white;
-  padding: 0.75rem 1.25rem;
-  outline: none;
-  min-width: 180px;
-  max-width: 200px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: var(--transition);
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1rem;
-}
-
-.quantum-filter-select:focus {
-  border-color: rgba(102, 126, 234, 0.6);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
-.quantum-counter {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Enhanced Grid Layout - 3 cards per row */
-.quantum-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-bottom: 3rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Professional Course Cards */
-.quantum-card {
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  transition: var(--transition);
-  width: 100%;
-  min-height: 320px;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  max-width: 100%;
-  overflow: hidden;
-  position: relative;
-  box-shadow: var(--shadow-soft);
-}
-
-.quantum-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--primary-gradient);
-  opacity: 0;
-  transition: var(--transition);
-}
-
-.quantum-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-large);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.quantum-card:hover::before {
-  opacity: 1;
-}
-
-.quantum-hover-lift:hover {
-  transform: translateY(-8px) scale(1.02);
-}
-
-/* Card Header */
-.quantum-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-  max-width: 100%;
-  position: relative;
-}
-
-.quantum-card-header h3 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  line-height: 1.3;
-  color: var(--text-primary);
-}
-
-.quantum-badge {
-  background: var(--primary-gradient);
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
-  border: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-/* Card Meta Information */
-.quantum-card-meta {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.quantum-tag {
-  background: var(--secondary-gradient);
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
-  white-space: nowrap;
-  flex-shrink: 0;
-  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
-}
-
-.quantum-card-description {
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-  flex-grow: 1;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  line-height: 1.6;
-}
-
-/* Card Details */
-.quantum-card-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  max-width: 100%;
-}
-
-.instructor, .price, .rating {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  word-break: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.instructor::before {
-  content: '👨‍🏫';
-}
-
-.price::before {
-  content: '💰';
-}
-
-.rating::before {
-  content: '⭐';
-}
-
-/* Enhanced Card Actions */
-.quantum-card-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  max-width: 100%;
-  margin-top: auto;
-}
-
-.quantum-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
-  min-width: fit-content;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.quantum-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.5s;
-}
-
-.quantum-btn:hover::before {
-  left: 100%;
-}
-
-.quantum-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.quantum-action-btn {
-  background: var(--success-gradient);
-  border: none;
-  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-}
-
-.quantum-action-btn:hover {
-  background: var(--success-gradient);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
-}
-
-/* Specialized buttons */
-.quantum-test-btn {
-  background: var(--warning-gradient);
-  border: none;
-  box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
-}
-
-.quantum-unenroll {
-  background: var(--danger-gradient);
-  border: none;
-  box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
-}
-
-.quantum-rate {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  border: none;
-  color: #000;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-}
-
-/* Enhanced Course Form with 1cm gap */
-.quantum-course-form {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--border-radius);
-  padding: 2.5rem;
-  margin-bottom: 3rem;
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
-  margin-top: 1cm; /* 1cm gap from top */
-}
-
-.quantum-course-form::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--primary-gradient);
-}
-
-.form-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.form-title::before {
-  content: '🎯';
-  font-size: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-  width: 100%;
-  max-width: 100%;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.95rem;
-  max-width: 100%;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
-  font-size: 1rem;
-  max-width: 100%;
-  box-sizing: border-box;
-  transition: var(--transition);
-  font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: rgba(102, 126, 234, 0.6);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.form-group textarea {
-  min-height: 120px;
-  resize: vertical;
-  max-width: 100%;
-  line-height: 1.5;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  max-width: 100%;
-  margin-top: 2rem;
-}
-
-/* Get Details Section */
-.get-details-section {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  margin: 2rem 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
   backdrop-filter: blur(10px);
 }
 
-.get-details-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.get-details-title::before {
-  content: '📊';
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-item {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: var(--transition);
-}
-
-.detail-item:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.detail-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.detail-value {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.detail-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-/* Enrollments Section */
-.quantum-enrollments-section {
-  margin-top: 3rem;
-  width: 100%;
-  max-width: 100%;
-}
-
-.quantum-enrollments-list .quantum-glass {
-  min-height: auto;
-  padding: 1.5rem 2rem;
-  transition: var(--transition);
-}
-
-.quantum-enrollments-list .quantum-glass:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-medium);
-}
-
-.enrollment-info {
-  grid-template-columns: 1fr auto auto;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.enrollment-actions {
-  gap: 0.75rem;
-}
-
-.quantum-glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  border-radius: var(--border-radius);
-  transition: var(--transition);
-}
-
-.enrollment-info {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  align-items: center;
-}
-
-.enrollment-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 100%;
-}
-
-.status {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+.filter-label {
+  color: var(--text-accent) !important;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
   white-space: nowrap;
-  flex-shrink: 0;
-  border: none;
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
 }
 
-.in-progress {
-  background: var(--success-gradient);
-  color: white;
-  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+.results-count {
+  color: var(--text-accent);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  background: rgba(0, 245, 255, 0.1);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-accent);
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
 }
 
-.completed {
-  background: var(--primary-gradient);
-  color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+/* Courses Grid */
+.courses-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(2, 1fr);
 }
-
-/* Message styles */
-.quantum-message {
-  padding: 1.25rem 2rem;
-  border-radius: var(--border-radius);
-  margin-bottom: 2rem;
-  text-align: center;
+.enrollments-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(2, 1fr);
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  font-weight: 600;
+}
+/* Loading States */
+.loading-state {
+  text-align: center;
+  padding: var(--space-2xl);
+}
+
+.quantum-loading {
+  color: var(--text-accent);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: var(--space-2xl);
+  background: var(--bg-overlay);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-lg);
+  opacity: 0.7;
+}
+
+.empty-state h3 {
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-xl);
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xl);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Message Styles */
+.quantum-message {
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-lg);
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
   backdrop-filter: blur(20px);
   border: 1px solid;
   animation: slideInDown 0.5s ease-out;
+}
+
+.quantum-success {
+  background: rgba(67, 233, 123, 0.1);
+  border-color: rgba(67, 233, 123, 0.3);
+  color: var(--success);
+}
+
+.quantum-error {
+  background: rgba(250, 112, 154, 0.1);
+  border-color: rgba(250, 112, 154, 0.3);
+  color: var(--error);
+}
+
+.quantum-info {
+  background: rgba(0, 245, 255, 0.1);
+  border-color: rgba(0, 245, 255, 0.3);
+  color: var(--info);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .quantum-dashboard {
+    padding: var(--space-md);
+  }
+  
+  .dashboard-section {
+    padding: var(--space-lg);
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-md);
+  }
+  
+  .section-title {
+    font-size: var(--font-size-xl);
+    text-align: center;
+  }
+  
+  .section-controls {
+    justify-content: center;
+    gap: var(--space-md);
+  }
+  
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-group {
+    flex: 1;
+    justify-content: space-between;
+    max-width: 300px;
+    margin: 0 auto;
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .quantum-dashboard {
+    padding: var(--space-sm);
+  }
+  
+  .dashboard-section {
+    padding: var(--space-md);
+  }
+  
+  .section-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .section-controls {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+    max-width: 100%;
+    padding: var(--space-md);
+  }
+  
+  .results-count {
+    text-align: center;
+    font-size: var(--font-size-sm);
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .empty-state-actions {
+    flex-direction: column;
+  }
+  
+  .empty-state-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-secondary);
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInDown {
@@ -713,304 +350,14 @@
   }
 }
 
-.quantum-success {
-  background: rgba(67, 233, 123, 0.1);
-  border-color: rgba(67, 233, 123, 0.3);
-  color: #43e97b;
-}
-
-.quantum-error {
-  background: rgba(250, 112, 154, 0.1);
-  border-color: rgba(250, 112, 154, 0.3);
-  color: #fa709a;
-}
-
-.quantum-loading {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
-  width: 100%;
-  max-width: 100%;
-  font-size: 1.1rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--text-secondary);
-  width: 100%;
-  max-width: 100%;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--card-border);
-}
-
-.empty-state::before {
-  content: '📚';
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-/* Progress bars and additional elements */
-.progress-bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-  margin: 1rem 0;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--success-gradient);
-  border-radius: 3px;
-  transition: width 0.5s ease;
-}
-
-/* Course difficulty indicators */
-.difficulty {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-left: auto;
-}
-
-.difficulty-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-muted);
-}
-
-.difficulty-dot.active {
-  background: var(--success-gradient);
-}
-
-/* Responsive design */
-@media (max-width: 1400px) {
-  .quantum-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.75rem;
-  }
-}
-
-@media (max-width: 1200px) {
-  .quantum-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .quantum-filter-select {
-    min-width: 160px;
-    max-width: 180px;
-  }
-}
-
-@media (max-width: 992px) {
-  .quantum-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .quantum-dashboard {
-    padding: 1.5rem;
-  }
-  
-  .enrollment-info {
-    grid-template-columns: 1fr auto;
-    gap: 1rem;
-  }
-  
-  .quantum-glow-text {
-    font-size: 2.5rem;
-  }
-  
-  .quantum-user-info {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .user-info-right {
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 768px) {
-  .quantum-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .quantum-dashboard {
-    padding: 1rem;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
-  }
-  
-  .quantum-filters {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .quantum-filter-select {
-    min-width: 140px;
-    max-width: 160px;
-  }
-  
-  .enrollment-info {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .enrollment-actions {
-    justify-content: space-between;
-  }
-  
-  .quantum-glow-text {
-    font-size: 2rem;
-  }
-  
-  .quantum-text-gradient {
-    font-size: 1rem;
-  }
-  
-  .quantum-card-actions {
-    justify-content: space-between;
-  }
-  
-  .form-actions {
-    justify-content: space-between;
-  }
-  
-  .quantum-card {
-    padding: 1.5rem;
-  }
-  
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .quantum-dashboard {
-    padding: 0.75rem;
-  }
-  
-  .quantum-glow-text {
-    font-size: 1.75rem;
-  }
-  
-  .quantum-text-gradient {
-    font-size: 1.5rem;
-  }
-  
-  .quantum-card {
-    padding: 1.25rem;
-  }
-  
-  .enrollment-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .quantum-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .quantum-filters {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .quantum-filter-select {
-    min-width: 100%;
-    max-width: 100%;
-  }
-  
-  .quantum-course-form {
-    padding: 1.5rem;
-    margin-top: 0.5cm; /* Reduced gap on mobile */
-  }
-}
-
-/* Animation classes */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--primary-gradient);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-gradient);
-}
-
-/* Focus states for accessibility */
-.quantum-btn:focus-visible,
-.quantum-filter-select:focus-visible {
-  outline: 2px solid rgba(102, 126, 234, 0.6);
-  outline-offset: 2px;
-}
-
-/* Print styles */
+/* Print Styles */
 @media print {
   .quantum-dashboard {
     background: white !important;
     color: black !important;
   }
   
-  .quantum-btn {
+  .btn {
     display: none !important;
   }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  :root {
-    --card-bg: rgba(255, 255, 255, 0.1);
-    --card-border: rgba(255, 255, 255, 0.3);
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Ensure full width for all child elements */
-.quantum-dashboard > * {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
 }

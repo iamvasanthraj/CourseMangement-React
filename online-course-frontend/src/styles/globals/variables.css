@@ -1,0 +1,115 @@
+/* Quantum Learning Theme System */
+:root {
+  /* ===== COLOR SYSTEM ===== */
+  /* Primary Colors */
+  --primary-50: #f0f4ff;
+  --primary-100: #e0e7ff;
+  --primary-500: #667eea;
+  --primary-600: #5a67d8;
+  --primary-900: #312e81;
+
+  /* Gradient System */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-accent: linear-gradient(135deg, #00f5ff 0%, #00d2ff 100%);
+
+  /* Background Colors */
+  --bg-primary: #0f0f23;
+  --bg-secondary: #0a0a1a;
+  --bg-surface: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(255, 255, 255, 0.02);
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0c0;
+  --text-muted: #6c757d;
+  --text-accent: #00f5ff;
+
+  /* Border Colors */
+  --border-primary: rgba(255, 255, 255, 0.1);
+  --border-secondary: rgba(255, 255, 255, 0.15);
+  --border-accent: rgba(0, 245, 255, 0.3);
+
+  /* Status Colors */
+  --success: #43e97b;
+  --warning: #f59e0b;
+  --error: #fa709a;
+  --info: #00f5ff;
+
+  /* ===== SHADOW SYSTEM ===== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 15px 50px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.5);
+
+  /* ===== BORDER RADIUS ===== */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 50%;
+
+  /* ===== SPACING ===== */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* ===== TYPOGRAPHY ===== */
+  --font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* ===== TRANSITIONS ===== */
+  --transition-fast: all 0.15s ease;
+  --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: all 0.5s ease;
+
+  /* ===== Z-INDEX ===== */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-popover: 1050;
+  --z-tooltip: 1060;
+
+  /* ===== LAYOUT ===== */
+  --header-height: 4rem;
+  --sidebar-width: 16rem;
+  --max-width: 1400px;
+}
+
+/* ===== DARK THEME (Default) ===== */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-surface: rgba(0, 0, 0, 0.05);
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border-primary: rgba(0, 0, 0, 0.1);
+  --border-secondary: rgba(0, 0, 0, 0.15);
+}

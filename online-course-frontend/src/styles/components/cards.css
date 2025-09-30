@@ -1,0 +1,232 @@
+/* Card Base Styles */
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+  backdrop-filter: blur(20px);
+  transition: var(--transition-normal);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: var(--transition-normal);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-secondary);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Card Content Areas */
+.card-header {
+  padding: var(--space-xl);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.card-body {
+  padding: var(--space-xl);
+}
+
+.card-footer {
+  padding: var(--space-xl);
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-overlay);
+}
+
+/* Course Card Specific Styles */
+.course-card {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-card .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.course-card .card-footer {
+  margin-top: auto;
+}
+
+/* Card Elements */
+.card-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  line-height: 1.3;
+}
+
+.card-description {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  margin-bottom: var(--space-md);
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.meta-icon {
+  font-size: var(--font-size-md);
+}
+
+.card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.stat {
+  text-align: center;
+  padding: var(--space-md);
+  background: var(--bg-overlay);
+  border-radius: var(--radius-md);
+}
+
+.stat-value {
+  display: block;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Card Actions */
+.card-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.card-actions .btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Enrollment Card Styles */
+.enrollment-card {
+  min-height: auto;
+  transition: var(--transition-normal);
+}
+
+.enrollment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.enrollment-info {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-lg);
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.enrollment-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* Status Badges in Cards */
+.status-badge {
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-completed {
+  background: var(--gradient-success);
+  color: white;
+}
+
+.status-in-progress {
+  background: var(--gradient-warning);
+  color: white;
+}
+
+.status-pending {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+/* Responsive Card Layouts */
+.cards-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 768px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .enrollment-info {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  
+  .enrollment-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .card-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-actions {
+    flex-direction: column;
+  }
+  
+  .card-actions .btn {
+    width: 100%;
+  }
+}

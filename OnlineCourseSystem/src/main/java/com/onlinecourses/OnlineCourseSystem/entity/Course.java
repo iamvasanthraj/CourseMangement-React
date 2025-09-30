@@ -1,6 +1,10 @@
 package com.onlinecourses.OnlineCourseSystem.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,71 +14,77 @@ public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false)
     private String title;
+
+    private String category;
+    private String duration;
+    private String batch;
+    private String level;
     
-    private String description;
-    
-    @Column(nullable = false)
-    private String category; // BACKEND, FRONTEND, CYBERSECURITY, DATABASE, etc.
-    
-    @Column(nullable = false)
-    private Double price;
-    
-    private Double rating = 0.0;
-    
-    private Integer totalRatings = 0;
-    
-    private String batch = "New Batch"; // New Batch, Ongoing, Completed
-    
-    @Column(name = "instructor_name")
-    private String instructorName;
-    
-    @Column(name = "instructor_id", nullable = false)
-    private Long instructorId;
-    
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price = BigDecimal.ZERO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "instructor_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "enrollments", "password"})
+    private User instructor;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // ADD THIS - breaks the circular reference
+    private List<Enrollment> enrollments = new ArrayList<>();
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     // Constructors
     public Course() {}
-    
-    public Course(String title, String description, String category, Double price, 
-                 String instructorName, Long instructorId) {
+    public Course(String title, String category, String duration, String batch, String level, BigDecimal price, User instructor) {
         this.title = title;
-        this.description = description;
         this.category = category;
+        this.duration = duration;
+        this.batch = batch;
+        this.level = level;
         this.price = price;
-        this.instructorName = instructorName;
-        this.instructorId = instructorId;
+        this.instructor = instructor;
     }
-    
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
-    
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
-    
-    public Double getRating() { return rating; }
-    public void setRating(Double rating) { this.rating = rating; }
-    
-    public Integer getTotalRatings() { return totalRatings; }
-    public void setTotalRatings(Integer totalRatings) { this.totalRatings = totalRatings; }
-    
+    public String getDuration() { return duration; }
+    public void setDuration(String duration) { this.duration = duration; }
     public String getBatch() { return batch; }
     public void setBatch(String batch) { this.batch = batch; }
-    
-    public String getInstructorName() { return instructorName; }
-    public void setInstructorName(String instructorName) { this.instructorName = instructorName; }
-    
-    public Long getInstructorId() { return instructorId; }
-    public void setInstructorId(Long instructorId) { this.instructorId = instructorId; }
+    public String getLevel() { return level; }
+    public void setLevel(String level) { this.level = level; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public User getInstructor() { return instructor; }
+    public void setInstructor(User instructor) { this.instructor = instructor; }
+    public List<Enrollment> getEnrollments() { return enrollments; }
+    public void setEnrollments(List<Enrollment> enrollments) { this.enrollments = enrollments; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

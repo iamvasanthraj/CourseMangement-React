@@ -1,0 +1,107 @@
+@import '../../../styles/globals/variables.css';
+@import '../../../styles/globals/utilities.css';
+
+.enrollments-modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.enrollments-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  max-width: 700px;
+  max-height: 80vh;
+}
+
+.enrollments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xl);
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-overlay);
+}
+
+.enrollments-header h3 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: var(--font-size-2xl);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+}
+
+.enrollments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.enrollments-table th {
+  background: var(--bg-overlay);
+  padding: var(--space-md);
+  text-align: left;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.enrollments-table td {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+}
+
+.actions-cell {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.mark-complete-btn {
+  background: var(--gradient-success);
+  color: white;
+  border: none;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.generate-cert-btn {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.enrollments-loading,
+.enrollments-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .enrollments-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .actions-cell {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+}

@@ -20,19 +20,25 @@ export const AuthProvider = ({ children }) => {
   })
   const [token, setToken] = useState(localStorage.getItem('token') || null)
 
-  const login = (responseData) => {
-    const userData = responseData.user || responseData
-    const authToken = responseData.token
-    
-    setUser(userData)
-    setToken(authToken)
-    
-    localStorage.setItem('user', JSON.stringify(userData))
-    if (authToken) {
-      localStorage.setItem('token', authToken)
-    }
-  }
-
+ const login = (responseData) => {
+  console.log('🔑 AuthContext login called with:', responseData);
+  
+  // Create user object from API response
+  const userData = {
+    userId: responseData.userId,
+    username: responseData.username,
+    email: responseData.email,
+    role: responseData.role
+  };
+  
+  console.log('✅ Setting user data:', userData);
+  
+  setUser(userData);
+  setToken(null); // No token since you removed JWT
+  
+  localStorage.setItem('user', JSON.stringify(userData));
+  localStorage.removeItem('token'); // Clean up any old tokens
+}
   const logout = () => {
     setUser(null)
     setToken(null)

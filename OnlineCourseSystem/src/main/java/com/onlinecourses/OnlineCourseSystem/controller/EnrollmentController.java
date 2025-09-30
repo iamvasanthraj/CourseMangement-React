@@ -1,19 +1,21 @@
 package com.onlinecourses.OnlineCourseSystem.controller;
 
-import com.onlinecourses.OnlineCourseSystem.dto.CourseEnrollmentDto;
-import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentResponseDto;
-import com.onlinecourses.OnlineCourseSystem.entity.Course;
+import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentRequest;
+import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentResponse;
+import com.onlinecourses.OnlineCourseSystem.dto.RatingRequest;
 import com.onlinecourses.OnlineCourseSystem.entity.Enrollment;
-import com.onlinecourses.OnlineCourseSystem.service.CourseService;
 import com.onlinecourses.OnlineCourseSystem.service.EnrollmentService;
-import com.onlinecourses.OnlineCourseSystem.service.UserService;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -23,162 +25,95 @@ public class EnrollmentController {
     @Autowired
     private EnrollmentService enrollmentService;
 
-    @Autowired
-    private CourseService courseService;
-
-    @PostMapping("/enroll")
-    public ResponseEntity<?> enrollStudent(@RequestBody Map<String, Long> request) {
-        try {
-            Long studentId = request.get("studentId");
-            Long courseId = request.get("courseId");
-            
-            Enrollment enrollment = enrollmentService.enrollStudent(studentId, courseId);
-            
-            // Create response DTO
-            Course course = courseService.getCourseById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-            
-            EnrollmentResponseDto response = new EnrollmentResponseDto(
-                enrollment.getId(),
-                course.getId(),
-                course.getTitle(),
-                course.getDescription(),
-                course.getCategory(),
-                course.getInstructorName(),
-                course.getRating(),
-                course.getPrice(),
-                enrollment.isCompleted(),
-                enrollment.getEnrollmentDate(),
-                course.getTotalRatings(),
-                course.getBatch()
-            );
-            
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<List<EnrollmentResponseDto>> getStudentEnrollments(@PathVariable Long studentId) {
+    public ResponseEntity<?> getStudentEnrollments(@PathVariable Long studentId) {
         try {
-            List<Enrollment> enrollments = enrollmentService.getEnrollmentsByStudent(studentId);
+            System.out.println("🔍 === CONTROLLER: GET ENROLLMENTS FOR STUDENT " + studentId + " ===");
             
-            List<EnrollmentResponseDto> response = enrollments.stream().map(enrollment -> {
-                Course course = courseService.getCourseById(enrollment.getCourseId())
-                    .orElse(new Course()); // Fallback course
+            List<EnrollmentResponse> enrollments = enrollmentService.getStudentEnrollments(studentId);
+            System.out.println("✅ Controller: Successfully retrieved " + enrollments.size() + " enrollments");
+            
+            // Test JSON serialization
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            
+            try {
+                String json = mapper.writeValueAsString(enrollments);
+                System.out.println("🔍 JSON response length: " + json.length());
                 
-                return new EnrollmentResponseDto(
-                    enrollment.getId(),
-                    course.getId(),
-                    course.getTitle(),
-                    course.getDescription(),
-                    course.getCategory(),
-                    course.getInstructorName(),
-                    course.getRating(),
-                    course.getPrice(),
-                    enrollment.isCompleted(),
-                    enrollment.getEnrollmentDate(),
-                    course.getTotalRatings(),
-                    course.getBatch()
-                );
-            }).collect(Collectors.toList());
+                if (json.length() > 1000) {
+                    System.out.println("🔍 First 500 chars: " + json.substring(0, 500));
+                    System.out.println("🔍 Last 500 chars: " + json.substring(json.length() - 500));
+                } else {
+                    System.out.println("🔍 Full JSON: " + json);
+                }
+                
+                // Validate JSON is parseable
+                mapper.readValue(json, new TypeReference<List<EnrollmentResponse>>() {});
+                System.out.println("✅ JSON validation passed");
+                
+            } catch (Exception jsonError) {
+                System.out.println("💥 JSON Error: " + jsonError.getMessage());
+                jsonError.printStackTrace();
+                return ResponseEntity.internalServerError()
+                    .body("JSON serialization error: " + jsonError.getMessage());
+            }
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(enrollments);
+            
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            System.out.println("💥 CONTROLLER ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body("Error loading enrollments: " + e.getMessage());
         }
     }
-    
-    @Autowired
-private UserService userService;
-
 
     @GetMapping("/course/{courseId}")
-public ResponseEntity<List<CourseEnrollmentDto>> getCourseEnrollments(@PathVariable Long courseId) {
-    try {
-        List<Enrollment> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
-        
-        Course course = courseService.getCourseById(courseId)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
-        
-        List<CourseEnrollmentDto> response = enrollments.stream().map(enrollment -> {
-            // You could add logic here to fetch actual student names if available
-            String studentName = generateStudentName(enrollment.getStudentId());
-            
-            return new CourseEnrollmentDto(
-                enrollment.getId(),
-                enrollment.getStudentId(),
-                enrollment.getCourseId(),
-                enrollment.getEnrollmentDate(),
-                enrollment.isCompleted(),
-                enrollment.getCompletionDate(),
-                course.getTitle(),
-                course.getCategory(),
-                course.getInstructorName(),
-                studentName
-            );
-        }).collect(Collectors.toList());
-        
-        return ResponseEntity.ok(response);
-    } catch (Exception e) {
-        return ResponseEntity.internalServerError().build();
-    }
-}
-
-private String generateStudentName(Long studentId) {
-    // If you have access to user service, you could fetch real names here
-    // For now, return the placeholder
-    return "Student #" + studentId;
-}
-
-    @PutMapping("/{enrollmentId}/complete")
-    public ResponseEntity<?> markAsCompleted(@PathVariable Long enrollmentId) {
+    public ResponseEntity<?> getCourseEnrollments(@PathVariable Long courseId) {
         try {
-            Enrollment updatedEnrollment = enrollmentService.markAsCompleted(enrollmentId);
-            return ResponseEntity.ok(updatedEnrollment);
+            List<EnrollmentResponse> enrollments = enrollmentService.getCourseEnrollments(courseId);
+            return ResponseEntity.ok(enrollments);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/enroll")
+    public ResponseEntity<?> enroll(@RequestBody EnrollmentRequest enrollmentRequest) {
+        try {
+            Enrollment enrollment = enrollmentService.enrollStudent(
+                enrollmentRequest.getStudentId(), 
+                enrollmentRequest.getCourseId()
+            );
+            return ResponseEntity.ok(enrollment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Enrollment failed: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/{enrollmentId}")
-    public ResponseEntity<?> unenrollStudent(@PathVariable Long enrollmentId) {
+    public ResponseEntity<?> unenroll(@PathVariable Long enrollmentId) {
         try {
             enrollmentService.unenrollStudent(enrollmentId);
-            return ResponseEntity.ok().body("Student unenrolled successfully");
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Unenrollment failed");
         }
     }
 
-    @GetMapping("/{enrollmentId}/details")
-    public ResponseEntity<?> getEnrollmentDetails(@PathVariable Long enrollmentId) {
+    @PutMapping("/{enrollmentId}/complete")
+    public ResponseEntity<?> completeCourse(@PathVariable Long enrollmentId, @RequestBody RatingRequest ratingRequest) {
         try {
-            Enrollment enrollment = enrollmentService.getEnrollmentById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-            
-            Course course = courseService.getCourseById(enrollment.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-            
-            EnrollmentResponseDto response = new EnrollmentResponseDto(
-                enrollment.getId(),
-                course.getId(),
-                course.getTitle(),
-                course.getDescription(),
-                course.getCategory(),
-                course.getInstructorName(),
-                course.getRating(),
-                course.getPrice(),
-                enrollment.isCompleted(),
-                enrollment.getEnrollmentDate(),
-                course.getTotalRatings(),
-                course.getBatch()
+            Enrollment enrollment = enrollmentService.completeCourse(
+                enrollmentId, 
+                ratingRequest.getRating(), 
+                ratingRequest.getFeedback()
             );
-            
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.ok(enrollment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to complete course: " + e.getMessage());
         }
     }
 }

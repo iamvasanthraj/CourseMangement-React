@@ -3,11 +3,7 @@ import React from 'react';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      error: null,
-      errorInfo: null 
-    };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -15,45 +11,27 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({
-      errorInfo: errorInfo
-    });
     console.error('Error caught by boundary:', error, errorInfo);
   }
-
-  handleReset = () => {
-    this.setState({ 
-      hasError: false, 
-      error: null,
-      errorInfo: null 
-    });
-  };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary" role="alert">
-          <h2>Something went wrong.</h2>
-          <details style={{ whiteSpace: 'pre-wrap' }}>
-            <summary>Error details</summary>
-            <strong>{this.state.error && this.state.error.toString()}</strong>
-            <br />
-            {this.state.errorInfo?.componentStack}
-          </details>
-          <button 
-            onClick={this.handleReset}
-            style={{
-              marginTop: '1rem',
-              padding: '0.5rem 1rem',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Try again
-          </button>
+        <div className="error-boundary">
+          <div className="error-content">
+            <h2>😵 Something went wrong</h2>
+            <p>We're sorry, but something unexpected happened.</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="reload-btn"
+            >
+              Reload Page
+            </button>
+            <details className="error-details">
+              <summary>Error Details</summary>
+              <pre>{this.state.error?.toString()}</pre>
+            </details>
+          </div>
         </div>
       );
     }

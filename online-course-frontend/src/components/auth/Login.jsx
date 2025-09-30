@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { authAPI } from '../../services/api'
 import { useNavigate, Link } from 'react-router-dom'
+import '../../styles/auth.css'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -20,34 +21,38 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     })
-    // Clear error when user starts typing
     if (error) setError('')
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  setLoading(true)
+  setError('')
 
-    try {
-      const response = await authAPI.login(formData)
-      login(response.data, rememberMe)
-      navigate('/dashboard')
-    } catch (error) {
-      setError(error.response?.data?.error || 'Login failed. Please check your credentials.')
-    } finally {
-      setLoading(false)
-    }
+  try {
+    const response = await authAPI.login(formData)
+    console.log('✅ Login successful:', response)
+    
+    // Pass the entire response to AuthContext
+    login(response) // This should work now
+    
+    navigate('/dashboard')
+  } catch (error) {
+    console.log('❌ Full error details:', error)
+    setError(error.message || 'Login failed.')
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleDemoLogin = (role) => {
-    const demoAccounts = {
-      student: { username: 'Student', password: 'demo123456789' },
-      instructor: { username: 'Instructor', password: 'demo123456789' }
-    }
-    
-    setFormData(demoAccounts[role])
+  const demoAccounts = {
+    student: { username: 'student@demo.com', password: 'demo123456789' },
+    instructor: { username: 'instructor@demo.com', password: 'demo123456789' }
   }
+  
+  setFormData(demoAccounts[role])
+}
 
   return (
     <div className="auth-container">

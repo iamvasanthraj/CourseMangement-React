@@ -1,0 +1,121 @@
+@import '../../../styles/globals/variables.css';
+@import '../../../styles/globals/utilities.css';
+
+.enrollments-modal {
+  max-width: 600px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+}
+
+.enrollments-modal .modal-header {
+  background: var(--bg-overlay);
+  border-bottom: 1px solid var(--border-primary);
+  padding: var(--space-xl);
+}
+
+.enrollments-modal .modal-header h3 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.enrollments-list {
+  padding: var(--space-xl);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.enrollment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  background: var(--bg-overlay);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+  margin-bottom: var(--space-md);
+}
+
+.enrollment-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.enrollment-date,
+.completion-date,
+.course-category {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.status {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.status.completed {
+  background: var(--gradient-success);
+  color: white;
+}
+
+.status.in-progress {
+  background: var(--gradient-warning);
+  color: white;
+}
+
+.enrollment-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.complete-btn {
+  background: var(--gradient-success);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.certificate-btn {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.enrollments-loading,
+.enrollments-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .enrollment-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .enrollment-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

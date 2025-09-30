@@ -1,0 +1,210 @@
+/* components/dashboard/student/EnrollmentsSection.css */
+.quantum-enrollments-section {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.quantum-text-gradient {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 20px;
+}
+
+/* FULL WIDTH STATS GRID - 4 equal rectangles */
+.enrollments-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 equal columns */
+  gap: 15px;
+  margin: 30px 0;
+  width: 100%;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 25px 20px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent-primary);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: block;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 2 CARDS PER ROW GRID */
+.quantum-enrollments-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .quantum-enrollments-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .enrollments-stats-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for stats on tablet */
+    gap: 15px;
+  }
+  
+  .stat-card {
+    min-height: 140px;
+    padding: 20px 15px;
+  }
+  
+  .stat-icon {
+    font-size: 2.2rem;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .quantum-enrollments-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .enrollments-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .quantum-text-gradient {
+    font-size: 2rem;
+  }
+  
+  .stat-card {
+    min-height: 120px;
+    padding: 18px 12px;
+  }
+  
+  .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  
+  .stat-number {
+    font-size: 1.8rem;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quantum-enrollments-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .enrollments-stats-grid {
+    grid-template-columns: 1fr; /* 1 column for stats on small mobile */
+    gap: 10px;
+  }
+  
+  .stat-card {
+    min-height: 100px;
+    padding: 15px 10px;
+  }
+  
+  .stat-icon {
+    font-size: 1.8rem;
+  }
+  
+  .stat-number {
+    font-size: 1.6rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+}
+
+/* Color variations for each stat card */
+.stat-card:nth-child(1) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.stat-card:nth-child(2) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.stat-card:nth-child(3) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.stat-card:nth-child(4) {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  border-color: rgba(139, 92, 246, 0.3);
+}

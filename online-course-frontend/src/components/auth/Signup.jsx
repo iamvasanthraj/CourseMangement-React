@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { authAPI } from '../../services/api'
 import { useNavigate, Link } from 'react-router-dom'
+import '../../styles/auth.css'
 
 const Signup = () => {
   const [formData, setFormData] = useState({

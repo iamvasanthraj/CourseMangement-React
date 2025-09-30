@@ -4,28 +4,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity  // Add this annotation
+@EnableWebSecurity
 public class SecurityConfig {
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .cors().and()  // Enable CORS
+            .csrf().disable()  // Disable CSRF
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/**").permitAll()  // Allow all requests for now
+                .requestMatchers("/**").permitAll()  // Allow ALL requests without authentication
                 .anyRequest().permitAll()
             );
-        
         return http.build();
     }
 }

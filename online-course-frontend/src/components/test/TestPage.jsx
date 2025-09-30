@@ -11,32 +11,65 @@ const TestPage = () => {
   
   const testData = location.state;
   
+  console.log('🧪 TestPage mounted with data:', testData);
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(5 * 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
 
-  // Redirect if no test data
   useEffect(() => {
-    if (!testData?.questions?.length || !testData.enrollmentId) {
-      console.error('❌ No test data found, redirecting to dashboard');
+    console.log('🔍 Validating test data...');
+    
+    if (!testData) {
+      console.error('❌ No test data found');
+      alert('No test data available. Redirecting to dashboard.');
       navigate('/dashboard');
+      return;
+    }
+
+    if (!testData?.questions?.length) {
+      console.error('❌ No questions found');
+      alert('No questions available for this test.');
+      navigate('/dashboard');
+      return;
+    }
+
+    if (!testData.courseId || !testData.studentId) {
+      console.error('❌ Missing required identifiers');
+      alert('Required information missing. Please try again.');
+      navigate('/dashboard');
+      return;
+    }
+
+    console.log('✅ Test data validated:', {
+      courseId: testData.courseId,
+      studentId: testData.studentId,
+      enrollmentId: testData.enrollmentId,
+      isTemporary: testData.isTemporarySession,
+      questionCount: testData.questions.length
+    });
+
+    // Set duration from testData or use default
+    if (testData.duration) {
+      setTimeLeft(testData.duration);
     }
   }, [testData, navigate]);
 
-  // Timer effect
   useEffect(() => {
-    if (timeLeft <= 0) {
+    if (timeLeft <= 0 && !hasAttempted) {
+      setHasAttempted(true);
       handleSubmitTest();
       return;
     }
 
     const timer = setInterval(() => {
-      setTimeLeft(timeLeft - 1);
+      setTimeLeft(prev => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, hasAttempted]);
 
   const handleAnswerSelect = (questionIndex, answerIndex) => {
     setAnswers(prev => ({
@@ -45,88 +78,126 @@ const TestPage = () => {
     }));
   };
 
-const handleSubmitTest = async () => {
-  if (isSubmitting) return;
+  const handleSubmitTest = async () => {
+    if (isSubmitting || hasAttempted) return;
 
-  try {
-    setIsSubmitting(true);
-    
-    // Calculate score
-    const score = calculateScore();
-    const passed = score >= 60; // 6 out of 10 = 60%
-    
-    console.log('📊 Test results:', {
-      score,
-      totalQuestions: testData.questions.length,
-      passed,
-      answers
-    });
-
-    // Submit results
-    console.log('🔄 Submitting test results...');
-    const result = await enrollmentAPI.submitTestResults(testData.enrollmentId, {
-      score,
-      totalQuestions: testData.questions.length,
-      answers,
-      studentId: testData.studentId,
-      courseId: testData.courseId,
-      passed,
-      submittedAt: new Date().toISOString()
-    });
-    
-    console.log('✅ Test results submitted successfully:', result);
-
-    // ✅ If test passed, mark course as completed
-    if (passed) {
-      console.log('🎉 Test passed! Marking course as completed...');
-      try {
-        await enrollmentAPI.markComplete(testData.enrollmentId);
-        console.log('✅ Course marked as completed');
-      } catch (markCompleteError) {
-        console.error('❌ Error marking course as completed:', markCompleteError);
-        // Continue even if this fails - the test results are already saved
-      }
-    }
-
-    // Navigate back to dashboard with success message
-    navigate('/dashboard', { 
-      state: { 
-        testCompleted: true,
+    try {
+      setIsSubmitting(true);
+      setHasAttempted(true);
+      
+      const score = calculateScore();
+      const passed = score >= 60;
+      const correctAnswers = countCorrectAnswers();
+      
+      console.log('📊 Test results:', {
         score,
         totalQuestions: testData.questions.length,
+        correctAnswers,
         passed,
-        courseMarkedComplete: passed // ✅ Flag to show course completion
+        isTemporarySession: testData.isTemporarySession
+      });
+
+      // For temporary sessions (without enrollment ID), just show results
+      if (testData.isTemporarySession) {
+        console.log('📝 Temporary test session - showing results only');
+        
+        navigate('/test-results', { 
+          state: { 
+            testCompleted: true,
+            score,
+            totalQuestions: testData.questions.length,
+            correctAnswers,
+            passed,
+            courseTitle: testData.courseTitle,
+            courseId: testData.courseId,
+            isTemporary: true
+          }
+        });
+        return;
       }
-    });
-    
-  } catch (error) {
-    console.error('❌ Error submitting test:', error);
-    console.error('Error details:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    
-    // Show more specific error message
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data || 
-                        error.message || 
-                        'Failed to submit test results';
-    
-    alert(`Error: ${errorMessage}. Please try again or contact support.`);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+      // For enrolled users with enrollment ID, submit to backend
+      if (testData.enrollmentId && !testData.isTemporarySession) {
+        console.log('💾 Submitting test results to backend...');
+        
+        const result = await enrollmentAPI.submitTestResults(testData.enrollmentId, {
+          score,
+          totalQuestions: testData.questions.length,
+          correctAnswers,
+          answers,
+          studentId: testData.studentId,
+          courseId: testData.courseId,
+          passed,
+          submittedAt: new Date().toISOString(),
+          timeSpent: (5 * 60) - timeLeft
+        });
+        
+        console.log('✅ Test results submitted:', result);
+
+        // Mark course as completed if passed
+        if (passed) {
+          try {
+            await enrollmentAPI.markComplete(testData.enrollmentId);
+            console.log('✅ Course marked as completed');
+          } catch (markCompleteError) {
+            console.error('❌ Error marking course as completed:', markCompleteError);
+          }
+        }
+      }
+
+      // Navigate to results page
+      navigate('/test-results', { 
+        state: { 
+          testCompleted: true,
+          score,
+          totalQuestions: testData.questions.length,
+          correctAnswers,
+          passed,
+          courseTitle: testData.courseTitle,
+          courseId: testData.courseId,
+          isTemporary: testData.isTemporarySession
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Error processing test:', error);
+      
+      // Even if submission fails, show results to user
+      const score = calculateScore();
+      const correctAnswers = countCorrectAnswers();
+      const passed = score >= 60;
+      
+      navigate('/test-results', { 
+        state: { 
+          testCompleted: true,
+          score,
+          totalQuestions: testData.questions.length,
+          correctAnswers,
+          passed,
+          courseTitle: testData.courseTitle,
+          courseId: testData.courseId,
+          error: true,
+          errorMessage: error.response?.data?.message || error.message
+        }
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const calculateScore = () => {
+    const correct = countCorrectAnswers();
+    return Math.round((correct / testData.questions.length) * 100);
+  };
+
+  const countCorrectAnswers = () => {
     let correct = 0;
     testData.questions.forEach((question, index) => {
       if (answers[index] === question.correctAnswer) {
         correct++;
       }
     });
-    return Math.round((correct / testData.questions.length) * 100);
+    return correct;
   };
 
   const formatTime = (seconds) => {
@@ -145,6 +216,7 @@ const handleSubmitTest = async () => {
   }
 
   const question = testData.questions[currentQuestion];
+  const progressPercentage = ((currentQuestion + 1) / testData.questions.length) * 100;
 
   return (
     <div className="quantum-test-page">
@@ -155,13 +227,18 @@ const handleSubmitTest = async () => {
             {formatTime(timeLeft)}
           </span>
         </div>
+        {testData.isTemporarySession && (
+          <div className="test-mode-badge">
+            Practice Mode
+          </div>
+        )}
       </header>
 
       <div className="test-progress">
         <div className="progress-bar">
           <div 
             className="progress-fill"
-            style={{ width: `${((currentQuestion + 1) / testData.questions.length) * 100}%` }}
+            style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
         <div className="progress-text">
@@ -179,6 +256,7 @@ const handleSubmitTest = async () => {
                 name={`question-${currentQuestion}`}
                 checked={answers[currentQuestion] === index}
                 onChange={() => handleAnswerSelect(currentQuestion, index)}
+                disabled={isSubmitting}
               />
               <span>{option}</span>
             </label>
@@ -190,7 +268,7 @@ const handleSubmitTest = async () => {
         <button
           className="quantum-btn quantum-btn-secondary"
           onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-          disabled={currentQuestion === 0}
+          disabled={currentQuestion === 0 || isSubmitting}
         >
           Previous
         </button>
@@ -203,7 +281,7 @@ const handleSubmitTest = async () => {
           <button 
             className="quantum-btn quantum-action-btn"
             onClick={handleSubmitTest}
-            disabled={isSubmitting}
+            disabled={isSubmitting || hasAttempted}
           >
             {isSubmitting ? 'Submitting...' : 'Submit Test'}
           </button>
@@ -211,11 +289,18 @@ const handleSubmitTest = async () => {
           <button
             className="quantum-btn quantum-btn-primary"
             onClick={() => setCurrentQuestion(prev => prev + 1)}
+            disabled={isSubmitting}
           >
             Next
           </button>
         )}
       </div>
+
+      {isSubmitting && (
+        <div className="test-submitting">
+          <p>Processing your results...</p>
+        </div>
+      )}
     </div>
   );
 };
