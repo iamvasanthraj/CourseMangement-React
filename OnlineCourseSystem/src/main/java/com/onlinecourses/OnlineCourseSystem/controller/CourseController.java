@@ -36,23 +36,23 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}")
-public ResponseEntity<?> getCourseById(@PathVariable Long courseId) {
-    try {
-        System.out.println("🔍 === GET COURSE BY ID: " + courseId + " ===");
-        Optional<Course> course = courseService.getCourseById(courseId);
-        
-        if (course.isPresent()) {
-            System.out.println("✅ Course found: " + course.get().getTitle());
-            return ResponseEntity.ok(course.get());
-        } else {
-            System.out.println("❌ Course not found: " + courseId);
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> getCourseById(@PathVariable Long courseId) {
+        try {
+            System.out.println("🔍 === GET COURSE BY ID: " + courseId + " ===");
+            Optional<Course> course = courseService.getCourseById(courseId);
+            
+            if (course.isPresent()) {
+                System.out.println("✅ Course found: " + course.get().getTitle());
+                return ResponseEntity.ok(course.get());
+            } else {
+                System.out.println("❌ Course not found: " + courseId);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.out.println("💥 ERROR in getCourseById: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error getting course: " + e.getMessage());
         }
-    } catch (Exception e) {
-        System.out.println("💥 ERROR in getCourseById: " + e.getMessage());
-        return ResponseEntity.internalServerError().body("Error getting course: " + e.getMessage());
     }
-}
 
     @GetMapping("/category/{category}")
     public ResponseEntity<?> getCoursesByCategory(@PathVariable String category) {
@@ -95,6 +95,36 @@ public ResponseEntity<?> getCourseById(@PathVariable Long courseId) {
             return ResponseEntity.ok(savedCourse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to create course: " + e.getMessage());
+        }
+    }
+
+    // ✅ ADD THIS PUT ENDPOINT FOR UPDATING COURSES
+    @PutMapping("/{courseId}")
+    public ResponseEntity<?> updateCourse(
+            @PathVariable Long courseId,
+            @RequestBody Course updatedCourse) {
+        
+        try {
+            System.out.println("🔄 === UPDATE COURSE REQUESTED ===");
+            System.out.println("📝 Course ID: " + courseId);
+            System.out.println("📝 Update Data - Title: " + updatedCourse.getTitle() + 
+                             ", Duration: " + updatedCourse.getDuration() + 
+                             ", Category: " + updatedCourse.getCategory());
+            
+            Course updated = courseService.updateCourse(courseId, updatedCourse);
+            
+            System.out.println("✅ Course updated successfully: " + updated.getTitle());
+            return ResponseEntity.ok(updated);
+            
+        } catch (RuntimeException e) {
+            System.out.println("❌ ERROR updating course: " + e.getMessage());
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.badRequest().body("Failed to update course: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("💥 UNEXPECTED ERROR updating course: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Internal server error: " + e.getMessage());
         }
     }
 

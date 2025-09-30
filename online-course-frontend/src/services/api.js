@@ -151,6 +151,13 @@ export const coursesAPI = {
     });
   },
 
+   update: async (courseId, courseData) => {
+    return apiCall(`/courses/${courseId}`, {
+      method: 'PUT',
+      body: JSON.stringify(courseData),
+    });
+  },
+
   delete: async (courseId) => {
     return apiCall(`/courses/${courseId}`, {
       method: 'DELETE',

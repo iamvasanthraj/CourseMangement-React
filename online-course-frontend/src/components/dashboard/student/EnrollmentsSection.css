@@ -3,6 +3,7 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 80vh;
 }
 
 .section-header {
@@ -23,7 +24,7 @@
 /* FULL WIDTH STATS GRID - 4 equal rectangles */
 .enrollments-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 equal columns */
+  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
   margin: 30px 0;
   width: 100%;
@@ -42,11 +43,29 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::before {
+  opacity: 1;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   border-color: var(--accent-primary);
 }
 
@@ -54,6 +73,11 @@
   font-size: 2.5rem;
   margin-bottom: 12px;
   display: block;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
 }
 
 .stat-content {
@@ -69,6 +93,7 @@
   color: var(--text-primary);
   display: block;
   line-height: 1;
+  transition: color 0.3s ease;
 }
 
 .stat-label {
@@ -77,6 +102,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 /* 2 CARDS PER ROW GRID */
@@ -87,16 +113,158 @@
   margin-top: 20px;
 }
 
+/* Empty State */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   color: var(--text-secondary);
+  background: var(--bg-surface);
+  border-radius: 16px;
+  border: 2px dashed var(--border-primary);
+  margin-top: 40px;
 }
 
 .empty-icon {
   font-size: 4rem;
   margin-bottom: 20px;
   opacity: 0.7;
+  animation: float 3s ease-in-out infinite;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.quantum-loading {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quantum-loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Color variations for each stat card */
+.stat-card:nth-child(1) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.stat-card:nth-child(1):hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+}
+
+.stat-card:nth-child(2) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.stat-card:nth-child(2):hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+}
+
+.stat-card:nth-child(3) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.stat-card:nth-child(3):hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+}
+
+.stat-card:nth-child(4) {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.stat-card:nth-child(4):hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
+}
+
+/* Animation for stat numbers */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-number {
+  animation: countUp 0.6s ease-out;
+}
+
+/* Animation for cards */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quantum-enrollments-grid > * {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.quantum-enrollments-grid > *:nth-child(1) { animation-delay: 0.1s; }
+.quantum-enrollments-grid > *:nth-child(2) { animation-delay: 0.2s; }
+.quantum-enrollments-grid > *:nth-child(3) { animation-delay: 0.3s; }
+.quantum-enrollments-grid > *:nth-child(4) { animation-delay: 0.4s; }
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Spin animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
@@ -107,7 +275,7 @@
   }
   
   .enrollments-stats-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns for stats on tablet */
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
   }
   
@@ -123,9 +291,17 @@
   .stat-number {
     font-size: 2rem;
   }
+  
+  .quantum-text-gradient {
+    font-size: 2.2rem;
+  }
 }
 
 @media (max-width: 768px) {
+  .quantum-enrollments-section {
+    padding: 15px;
+  }
+  
   .quantum-enrollments-grid {
     grid-template-columns: 1fr;
     gap: 15px;
@@ -157,16 +333,28 @@
   .stat-label {
     font-size: 0.9rem;
   }
+  
+  .empty-state {
+    padding: 40px 15px;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
+  }
 }
 
 @media (max-width: 480px) {
+  .quantum-enrollments-section {
+    padding: 10px;
+  }
+  
   .quantum-enrollments-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
   
   .enrollments-stats-grid {
-    grid-template-columns: 1fr; /* 1 column for stats on small mobile */
+    grid-template-columns: 1fr;
     gap: 10px;
   }
   
@@ -186,25 +374,47 @@
   .stat-label {
     font-size: 0.8rem;
   }
+  
+  .quantum-text-gradient {
+    font-size: 1.8rem;
+  }
+  
+  .empty-state {
+    padding: 30px 10px;
+  }
+  
+  .empty-icon {
+    font-size: 2.5rem;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.3rem;
+  }
+  
+  .empty-state p {
+    font-size: 1rem;
+  }
 }
 
-/* Color variations for each stat card */
-.stat-card:nth-child(1) {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-color: rgba(102, 126, 234, 0.3);
+/* Enhanced focus states for accessibility */
+.stat-card:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
-.stat-card:nth-child(2) {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-.stat-card:nth-child(3) {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.stat-card:nth-child(4) {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
-  border-color: rgba(139, 92, 246, 0.3);
+/* Print styles */
+@media print {
+  .quantum-enrollments-section {
+    padding: 0;
+  }
+  
+  .stat-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+  
+  .quantum-enrollments-grid {
+    grid-template-columns: 1fr;
+  }
 }

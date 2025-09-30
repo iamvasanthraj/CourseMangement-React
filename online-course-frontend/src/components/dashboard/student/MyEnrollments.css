@@ -1,4 +1,5 @@
-/* components/enrollments/MyEnrollments.css */
+/*
+
 .my-enrollments-page {
   padding: 20px;
   max-width: 1200px;
@@ -28,7 +29,7 @@
   margin-bottom: 20px;
 }
 
-/* Responsive design */
+
 @media (max-width: 768px) {
   .my-enrollments-page {
     padding: 15px;
@@ -42,3 +43,5 @@
     font-size: 1rem;
   }
 }
+
+*/

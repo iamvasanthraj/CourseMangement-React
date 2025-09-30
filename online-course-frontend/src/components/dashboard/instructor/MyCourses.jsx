@@ -1,4 +1,4 @@
-// components/dashboard/instructor/MyCourses.jsx - Update the component
+// components/dashboard/instructor/MyCourses.jsx
 import React from 'react';
 import { useDashboard } from '../../../hooks/useDashboard';
 import InstructorCourseCard from './InstructorCourseCard';
@@ -31,20 +31,21 @@ const MyCourses = () => {
 
   return (
     <div className="my-courses-page">
+      {/* Header Section */}
       <header className="page-header">
         <h1 className="page-title">📚 My Courses</h1>
         <p className="page-subtitle">Manage and track your created courses</p>
         
         {/* Instructor Stats */}
         <div className="instructor-stats-grid">
-          <div className="stat-card quantum-glass">
+          <div className="stat-card">
             <div className="stat-icon">📚</div>
             <div className="stat-content">
               <div className="stat-number">{instructorCourses.length}</div>
               <div className="stat-label">Total Courses</div>
             </div>
           </div>
-          <div className="stat-card quantum-glass">
+          <div className="stat-card">
             <div className="stat-icon">👥</div>
             <div className="stat-content">
               <div className="stat-number">
@@ -53,7 +54,7 @@ const MyCourses = () => {
               <div className="stat-label">Total Students</div>
             </div>
           </div>
-          <div className="stat-card quantum-glass">
+          <div className="stat-card">
             <div className="stat-icon">⭐</div>
             <div className="stat-content">
               <div className="stat-number">
@@ -65,7 +66,7 @@ const MyCourses = () => {
               <div className="stat-label">Average Rating</div>
             </div>
           </div>
-          <div className="stat-card quantum-glass">
+          <div className="stat-card">
             <div className="stat-icon">💰</div>
             <div className="stat-content">
               <div className="stat-number">
@@ -77,6 +78,7 @@ const MyCourses = () => {
         </div>
       </header>
 
+      {/* Courses Grid Section */}
       {instructorCourses.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📚</div>

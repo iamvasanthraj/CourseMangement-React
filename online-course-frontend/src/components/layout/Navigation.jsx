@@ -14,13 +14,11 @@ const Navigation = () => {
     navigate('/login');
   };
 
-  // Base menu items for all users
-  const baseMenuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/profile', label: 'Profile', icon: '👤' },
-  ];
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
 
-  // Role-specific menu items
+  // Role-specific menu items (Profile removed from here since it's at top)
   const roleMenuItems = [
     // For STUDENTS: Show "My Enrollments"
     ...(user?.role === 'STUDENT' ? [
@@ -33,24 +31,40 @@ const Navigation = () => {
     ] : [])
   ];
 
-  // Combine base and role-specific menu items
+  // Base menu items (without Profile since it's at top)
+  const baseMenuItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
+  ];
+
+  // Combine all menu items
   const menuItems = [...baseMenuItems, ...roleMenuItems];
 
   const isActive = (path) => location.pathname === path;
 
   return (
     <aside className="quantum-sidebar">
+      {/* Profile Section at the Top */}
+      <div className="sidebar-profile-section" onClick={handleProfileClick}>
+        <div className="profile-avatar-large">
+          {user?.username?.charAt(0)?.toUpperCase() || 'U'}
+        </div>
+        <div className="profile-info-compact">
+          <h3 className="profile-name">{user?.username}</h3>
+          <p className="profile-role-badge">
+            <span className="role-icon">
+              {user?.role === 'INSTRUCTOR' ? '👨‍🏫' : '🎓'}
+            </span>
+            {user?.role}
+          </p>
+          <p className="profile-email">{user?.email}</p>
+        </div>
+        <div className="profile-edit-hint">
+          <span>👆 Click to edit profile</span>
+        </div>
+      </div>
+
       <div className="sidebar-header">
         <h2 className="sidebar-title">Quantum Learn</h2>
-        <div className="user-info">
-          <span className="user-avatar">
-            {user?.role === 'INSTRUCTOR' ? '👨‍🏫' : '👨‍🎓'}
-          </span>
-          <div className="user-details">
-            <span className="username">{user?.username}</span>
-            <span className="user-role">{user?.role}</span>
-          </div>
-        </div>
       </div>
 
       <nav className="sidebar-nav">
@@ -63,6 +77,7 @@ const Navigation = () => {
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span className="nav-label">{item.label}</span>
+                {isActive(item.path) && <span className="active-indicator">●</span>}
               </button>
             </li>
           ))}

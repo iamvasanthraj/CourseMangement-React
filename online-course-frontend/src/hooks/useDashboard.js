@@ -61,24 +61,25 @@ export const useDashboard = () => {
   }, [loadCourses]);
 
   // ✅ ADD THIS: Course creation handler for instructors
-  const handleCreateCourse = async (e) => {
-    e.preventDefault();
-    
-    if (!user?.userId) {
-      showMessage('error', 'User not authenticated');
-      return;
-    }
+ // In handleCreateCourse function, remove description validation:
+const handleCreateCourse = async (e) => {
+  e.preventDefault();
+  
+  if (!user?.userId) {
+    showMessage('error', 'User not authenticated');
+    return;
+  }
 
-    // Validate required fields
-    if (!newCourse.title.trim()) {
-      showMessage('error', 'Course title is required');
-      return;
-    }
+  // Validate required fields (REMOVED description validation)
+  if (!newCourse.title.trim()) {
+    showMessage('error', 'Course title is required');
+    return;
+  }
 
-    if (!newCourse.duration.trim()) {
-      showMessage('error', 'Course duration is required');
-      return;
-    }
+  if (!newCourse.duration.trim()) {
+    showMessage('error', 'Course duration is required');
+    return;
+  }
 
     try {
       setLoading(true);

@@ -104,13 +104,62 @@ public class CourseService {
         courseRepository.deleteById(id);
     }
     
-   public Optional<Course> getCourseById(Long courseId) {
-    try {
-        System.out.println("🔍 Service: Getting course by ID: " + courseId);
-        return courseRepository.findById(courseId);
-    } catch (Exception e) {
-        System.out.println("💥 Service Error getting course: " + e.getMessage());
-        throw new RuntimeException("Failed to get course: " + e.getMessage());
+    public Optional<Course> getCourseById(Long courseId) {
+        try {
+            System.out.println("🔍 Service: Getting course by ID: " + courseId);
+            return courseRepository.findById(courseId);
+        } catch (Exception e) {
+            System.out.println("💥 Service Error getting course: " + e.getMessage());
+            throw new RuntimeException("Failed to get course: " + e.getMessage());
+        }
     }
-}
+    
+    // ✅ ADD THIS MISSING UPDATE METHOD
+    public Course updateCourse(Long courseId, Course updatedCourse) {
+        try {
+            System.out.println("🔄 Service: Updating course ID: " + courseId);
+            System.out.println("📝 Update data - Title: " + updatedCourse.getTitle() + 
+                             ", Duration: " + updatedCourse.getDuration() + 
+                             ", Category: " + updatedCourse.getCategory());
+            
+            Optional<Course> existingCourseOpt = courseRepository.findById(courseId);
+            
+            if (existingCourseOpt.isPresent()) {
+                Course existingCourse = existingCourseOpt.get();
+                
+                // Update only the fields that should be updatable
+                if (updatedCourse.getTitle() != null) {
+                    existingCourse.setTitle(updatedCourse.getTitle());
+                }
+                if (updatedCourse.getDuration() != null) {
+                    existingCourse.setDuration(updatedCourse.getDuration());
+                }
+                if (updatedCourse.getCategory() != null) {
+                    existingCourse.setCategory(updatedCourse.getCategory());
+                }
+                if (updatedCourse.getPrice() != null) {
+                    existingCourse.setPrice(updatedCourse.getPrice());
+                }
+                if (updatedCourse.getLevel() != null) {
+                    existingCourse.setLevel(updatedCourse.getLevel());
+                }
+                if (updatedCourse.getBatch() != null) {
+                    existingCourse.setBatch(updatedCourse.getBatch());
+                }
+                // ✅ DON'T update instructor - keep original creator
+                
+                Course savedCourse = courseRepository.save(existingCourse);
+                System.out.println("✅ Service: Course updated successfully: " + savedCourse.getTitle());
+                return savedCourse;
+            } else {
+                System.out.println("❌ Service: Course not found with ID: " + courseId);
+                throw new RuntimeException("Course not found with id: " + courseId);
+            }
+            
+        } catch (Exception e) {
+            System.out.println("💥 Service Error updating course: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update course: " + e.getMessage());
+        }
+    }
 }

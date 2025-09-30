@@ -1,11 +1,10 @@
-// components/dashboard/instructor/UpdateCourseModal.jsx
+// components/dashboard/instructor/UpdateCourseModal.jsx - Remove description field
 import React, { useState, useEffect } from 'react';
 import './UpdateCourseModal.css';
 
 const UpdateCourseModal = ({ course, onSubmit, onCancel, loading = false }) => {
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     duration: '',
     category: 'BACKEND',
     price: 0,
@@ -22,7 +21,6 @@ const UpdateCourseModal = ({ course, onSubmit, onCancel, loading = false }) => {
     if (course) {
       setFormData({
         title: course.title || '',
-        description: course.description || '',
         duration: course.duration || '',
         category: course.category || 'BACKEND',
         price: course.price || 0,
@@ -76,19 +74,6 @@ const UpdateCourseModal = ({ course, onSubmit, onCancel, loading = false }) => {
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   placeholder="Enter course title"
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              {/* Course Description */}
-              <div className="form-group full-width">
-                <label>Course Description *</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  placeholder="Describe what students will learn in this course"
-                  rows="4"
                   required
                   disabled={loading}
                 />
@@ -179,7 +164,7 @@ const UpdateCourseModal = ({ course, onSubmit, onCancel, loading = false }) => {
               </button>
               <button 
                 type="submit" 
-                disabled={loading || !formData.title || !formData.duration || !formData.description}
+                disabled={loading || !formData.title || !formData.duration}
                 className="submit-btn"
               >
                 {loading ? 'Updating...' : 'Update Course'}

@@ -53,21 +53,33 @@ const Dashboard = () => {
 
   return (
     <div className="quantum-dashboard">
-      <header className="dashboard-header">
-        <div className="header-content">
-          <h1 className="page-title">Welcome back, {user?.username}! 👋</h1>
-          <p className="page-subtitle">
-            Role: {user?.role} • 
-            <span 
-              className="enrollments-link" 
-              onClick={() => navigate('/my-enrollments')}
-              style={{ cursor: 'pointer', color: '#6366f1', marginLeft: '10px' }}
-            >
-              🎓 View My Enrollments ({enrollments.length})
-            </span>
-          </p>
-        </div>
-      </header>
+<header className="dashboard-header">
+  <div className="header-content">
+    <h1 className="page-title">
+      {user?.role === 'INSTRUCTOR' ? 'Dashboard' : 'Welcome back'} {user?.username}! 👋
+    </h1>
+    <p className="page-subtitle">
+      Role: {user?.role} • 
+      {user?.role === 'STUDENT' ? (
+        <span 
+          className="enrollments-link" 
+          onClick={() => navigate('/my-enrollments')}
+          style={{ cursor: 'pointer', color: '#10b981', marginLeft: '10px' }}
+        >
+          🎓 View My Enrollments ({enrollments.length})
+        </span>
+      ) : (
+        <span 
+          className="courses-link" 
+          onClick={() => navigate('/my-courses')}
+          style={{ cursor: 'pointer', color: '#10b981', marginLeft: '10px' }}
+        >
+          📚 Manage My Courses ({courses.filter(c => c.instructorId === user?.userId).length})
+        </span>
+      )}
+    </p>
+  </div>
+</header>
 
       {message.text && (
         <div className={`quantum-message quantum-${message.type}`} role="alert">

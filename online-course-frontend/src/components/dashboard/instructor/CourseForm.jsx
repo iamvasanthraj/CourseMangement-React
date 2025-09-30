@@ -1,3 +1,4 @@
+// components/dashboard/instructor/CourseForm.jsx
 import React from 'react';
 import './CourseForm.css';
 
@@ -29,7 +30,7 @@ const CourseForm = ({
 
   const handleInputChange = (field, value) => {
     setNewCourse(prev => ({
-      ...(prev || {}), // Handle case where prev might be undefined
+      ...(prev || {}),
       [field]: value
     }));
   };
@@ -38,7 +39,7 @@ const CourseForm = ({
     <div className="course-form-container">
       <form onSubmit={handleSubmit} className="quantum-form">
         <div className="form-grid">
-          {/* Course Title */}
+          {/* Row 1: Title + Duration */}
           <div className="form-group">
             <label className="form-label">Course Title *</label>
             <input
@@ -52,7 +53,6 @@ const CourseForm = ({
             />
           </div>
 
-          {/* Duration */}
           <div className="form-group">
             <label className="form-label">Duration *</label>
             <select
@@ -69,7 +69,7 @@ const CourseForm = ({
             </select>
           </div>
 
-          {/* Category */}
+          {/* Row 2: Category + Level */}
           <div className="form-group">
             <label className="form-label">Category *</label>
             <select
@@ -86,7 +86,6 @@ const CourseForm = ({
             </select>
           </div>
 
-          {/* Level */}
           <div className="form-group">
             <label className="form-label">Difficulty Level *</label>
             <select
@@ -103,7 +102,7 @@ const CourseForm = ({
             </select>
           </div>
 
-          {/* Price */}
+          {/* Row 3: Price + Batch */}
           <div className="form-group">
             <label className="form-label">Price ($)</label>
             <input
@@ -118,7 +117,6 @@ const CourseForm = ({
             />
           </div>
 
-          {/* Batch */}
           <div className="form-group">
             <label className="form-label">Batch Name</label>
             <select
@@ -138,7 +136,7 @@ const CourseForm = ({
         <div className="form-actions">
           <button 
             type="submit" 
-            className="submit-btn primary-btn"
+            className="submit-btn"
             disabled={loading || !safeNewCourse.title || !safeNewCourse.duration}
           >
             {loading ? (
