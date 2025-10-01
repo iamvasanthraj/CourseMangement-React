@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CourseCard.css';
 import RatingModal from '../../shared/RatingModal';
@@ -7,6 +7,7 @@ import UnenrollConfirmationModal from '../../dashboard/student/UnenrollConfirmat
 import Certificate from '../../shared/Certificate';
 import { getRandomQuestions } from '../../../utils/questionUtils';
 import { useDashboard } from '../../../hooks/useDashboard';
+import ModalPortal from '../../shared/ModalPortal';
 
 // ✅ FIX: Define constants outside the component
 const TEST_SCORES_KEY = 'course_test_scores';
@@ -22,44 +23,65 @@ const CourseCard = ({
   showEnrollButton = true,
   enrollmentData
 }) => {
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [showTestModal, setShowTestModal] = useState(false);
-  const [showUnenrollModal, setShowUnenrollModal] = useState(false);
-  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [activeModal, setActiveModal] = useState(null);
   const [isUnenrolling, setIsUnenrolling] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const navigate = useNavigate();
 
   // ✅ Get handleTestCompletion directly from useDashboard
   const { handleTestCompletion, refreshEnrollments, showMessage } = useDashboard();
 
-  // ✅ UPDATED: Check BOTH course object AND enrollmentData for rating info
-  const getRatingData = () => {
-    // Priority 1: Check enrollmentData first (for enrolled courses)
-    if (enrollmentData?.courseAverageRating !== undefined) {
-      return {
-        averageRating: enrollmentData.courseAverageRating,
-        totalRatings: enrollmentData.courseTotalRatings,
-        enrolledStudents: enrollmentData.enrolledStudents
-      };
+  // Ensure component is mounted before showing modals
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (activeModal && isMounted) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
     }
-    
-    // Priority 2: Check course object (for available courses in StudentDashboard)
-    if (course?.averageRating !== undefined) {
-      return {
-        averageRating: course.averageRating,
-        totalRatings: course.totalRatings || 0,
-        enrolledStudents: course.enrolledStudents || 0
-      };
-    }
-    
-    // Priority 3: Fallback to random values only if no data available
-    console.warn('⚠️ No rating data found, using fallbacks for course:', course?.title);
-    return {
-      averageRating: 4.5,
-      totalRatings: Math.floor(Math.random() * 50) + 10,
-      enrolledStudents: Math.floor(Math.random() * 100) + 20
+
+    return () => {
+      document.body.classList.remove('modal-open');
     };
+  }, [activeModal, isMounted]);
+
+  // ✅ SIMPLIFIED: Check BOTH course object AND enrollmentData for rating info
+ // ✅ FIXED: Check BOTH course object AND enrollmentData for rating info
+// ✅ FIXED: Only show real ratings, ignore fake enrollment ratings
+// ✅ SIMPLE FIX: Always use course rating data as source of truth
+// ✅ FIXED: Only use real course data for ratings
+const getRatingData = () => {
+  // Course data is the ONLY source of truth for ratings
+  const courseRating = parseFloat(course?.averageRating);
+  const courseTotal = parseInt(course?.totalRatings) || 0;
+
+  console.log('🔍 FINAL RATING CHECK:', {
+    courseTitle: course?.title,
+    courseRating,
+    courseTotal,
+    hasRealRating: courseRating > 0
+  });
+
+  if (!isNaN(courseRating) && courseRating > 0) {
+    return {
+      averageRating: courseRating,
+      totalRatings: courseTotal,
+      enrolledStudents: parseInt(course?.enrolledStudents) || 0
+    };
+  }
+
+  // Course has no rating - show 0.0
+  return {
+    averageRating: 0.0,
+    totalRatings: 0,
+    enrolledStudents: parseInt(course?.enrolledStudents) || 0
   };
+};
 
   // ✅ UPDATED: Use the unified rating data
   const ratingData = getRatingData();
@@ -98,7 +120,7 @@ const CourseCard = ({
       localStorage.setItem(TEST_SCORES_KEY, JSON.stringify(existingScores));
       console.log('💾 Test scores stored locally:', existingScores);
     } catch (error) {
-      console.error('❌ Failed to store test scores locally:', error);
+      console.error('🛑 Failed to store test scores locally:', error);
     }
   };
 
@@ -108,7 +130,7 @@ const CourseCard = ({
       const existingScores = JSON.parse(localStorage.getItem(TEST_SCORES_KEY) || '{}');
       return existingScores[`${courseId}_${user?.userId}`];
     } catch (error) {
-      console.error('❌ Failed to get local test scores:', error);
+      console.error('🛑 Failed to get local test scores:', error);
       return null;
     }
   };
@@ -175,31 +197,31 @@ const CourseCard = ({
   };
 
   const handleRateClick = () => {
-    setShowRatingModal(true);
+    setActiveModal('rating');
   };
 
   const handleStartTestClick = () => {
     console.log('🎯 Take Test button clicked');
-    setShowTestModal(true);
+    setActiveModal('test');
   };
 
   const handleConfirmTest = () => {
     console.log('🚀 Starting test with random questions...');
     
     if (!course?.id) {
-      console.error('❌ Missing course ID');
+      console.error('🛑 Missing course ID');
       alert('Course information missing');
       return;
     }
 
     if (!user?.userId) {
-      console.error('❌ Missing user ID');
+      console.error('🛑 Missing user ID');
       alert('User information missing');
       return;
     }
 
     // Close modal first
-    setShowTestModal(false);
+    setActiveModal(null);
 
     // Generate a unique session ID for this test attempt
     const testSessionId = `test_${course.id}_${user.userId}_${Date.now()}`;
@@ -238,23 +260,23 @@ const CourseCard = ({
 
   // Show unenroll confirmation modal
   const handleUnenrollClick = () => {
-    setShowUnenrollModal(true);
+    setActiveModal('unenroll');
   };
 
   // Handle confirmed unenrollment
   const handleConfirmUnenroll = async () => {
     if (!onUnenroll) {
-      console.error('❌ Unenroll function not provided');
+      console.error('🛑 Unenroll function not provided');
       return;
     }
 
     if (!course?.id) {
-      console.error('❌ Missing course ID');
+      console.error('🛑 Missing course ID');
       return;
     }
 
     if (!user?.userId) {
-      console.error('❌ Missing user ID');
+      console.error('🛑 Missing user ID');
       return;
     }
 
@@ -279,32 +301,32 @@ const CourseCard = ({
       console.log('✅ Unenroll request sent successfully');
       
     } catch (error) {
-      console.error('❌ Unenroll failed:', error);
+      console.error('🛑 Unenroll failed:', error);
       // Error is handled by the parent component
     } finally {
       setIsUnenrolling(false);
-      setShowUnenrollModal(false);
+      setActiveModal(null);
     }
   };
 
   // Handle canceled unenrollment
   const handleCancelUnenroll = () => {
-    setShowUnenrollModal(false);
+    setActiveModal(null);
   };
 
   // Handle certificate button click
   const handleCertificateClick = () => {
     console.log('🎓 Certificate button clicked for course:', course.id);
-    setShowCertificateModal(true);
+    setActiveModal('certificate');
   };
 
-  // Handle certificate modal close
-  const handleCertificateClose = () => {
-    setShowCertificateModal(false);
+  // Handle modal close
+  const handleModalClose = () => {
+    setActiveModal(null);
   };
 
   const handleRatingUpdated = (ratingData) => {
-    setShowRatingModal(false);
+    setActiveModal(null);
     if (onRate && course?.id) {
       // Pass course ID and rating data to parent
       onRate(course.id, ratingData?.rating || 0, ratingData);
@@ -346,42 +368,39 @@ const CourseCard = ({
 
   return (
     <>
-      {/* Certificate Modal - RENDERED AT DOCUMENT ROOT LEVEL */}
-      {showCertificateModal && (
+      {/* MODALS USING PORTALS - RENDERED OUTSIDE COMPONENT TREE */}
+      <ModalPortal isOpen={activeModal === 'certificate'}>
         <div className="certificate-modal-wrapper">
           <Certificate
             enrollment={getCertificateData()}
-            onClose={handleCertificateClose}
+            onClose={handleModalClose}
           />
         </div>
-      )}
+      </ModalPortal>
 
-      {/* Rating Modal - RENDERED AT DOCUMENT ROOT LEVEL */}
-      {showRatingModal && (
+      <ModalPortal isOpen={activeModal === 'rating'}>
         <div className="modal-overlay">
           <RatingModal
             enrollment={enrollmentData}
             course={course}
             user={user}
-            onClose={() => setShowRatingModal(false)}
+            onClose={handleModalClose}
             onRatingUpdated={handleRatingUpdated}
           />
         </div>
-      )}
+      </ModalPortal>
 
-      {/* Test Modal - RENDERED AT DOCUMENT ROOT LEVEL */}
-      {showTestModal && (
+      <ModalPortal isOpen={activeModal === 'test'}>
         <div className="modal-overlay">
           <TestModal
             questions={getRandomQuestions(10)}
             onConfirm={handleConfirmTest}
-            onClose={() => setShowTestModal(false)}
+            onClose={handleModalClose}
           />
         </div>
-      )}
+      </ModalPortal>
 
-      {/* Unenroll Modal - RENDERED AT DOCUMENT ROOT LEVEL */}
-      {showUnenrollModal && (
+      <ModalPortal isOpen={activeModal === 'unenroll'}>
         <div className="modal-overlay">
           <UnenrollConfirmationModal
             courseTitle={course.title}
@@ -390,7 +409,7 @@ const CourseCard = ({
             loading={isUnenrolling}
           />
         </div>
-      )}
+      </ModalPortal>
 
       {/* Course Card - Normal rendering */}
       <div className="course-card quantum-glass">
@@ -409,7 +428,6 @@ const CourseCard = ({
 
         <div className="card-content">
           <h3 className="course-title">{course.title}</h3>
-          {/* <p className="course-description">{courseDescription}</p> */}
 
           {/* ✅ UPDATED: Course meta information with real data */}
           <div className="course-meta">
@@ -478,12 +496,14 @@ const CourseCard = ({
             </div>
           )}
 
-          {/* ✅ UPDATED: Course stats with real data from backend */}
+          {/* ✅ FIXED: Course stats with proper 0.0 rating display */}
           <div className="course-stats">
             <div className="stat">
-              <span className="stat-value">{averageRating.toFixed(1)}</span>
+              <span className={`stat-value ${averageRating === 0 ? 'zero-rating' : ''}`}>
+                {averageRating === 0 ? '0.0' : averageRating.toFixed(1)}
+              </span>
               <span className="stat-label">
-                Rating {totalRatings > 0 && `(${totalRatings} ratings)`}
+                {totalRatings > 0 ? `Rating (${totalRatings})` : 'No Ratings'}
               </span>
             </div>
             <div className="stat">
@@ -509,49 +529,69 @@ const CourseCard = ({
           )}
 
           {isEnrolled && (
-            <div className="enrolled-actions">
-              {/* Test Button - Show for incomplete courses OR for retaking failed tests */}
-              {(!enrollmentData?.completed || (enrollmentData.completed && !canShowCertificate)) && (
-                <button 
-                  onClick={handleStartTestClick} 
-                  className="action-btn test-btn"
-                  title={enrollmentData?.completed ? `Retake test (Previous: ${scoreInfo.score}/${scoreInfo.total})` : 'Take the course test'}
-                >
-                  {enrollmentData?.completed ? '🔄 Retake Test' : '🧪 Take Test'}
-                </button>
+            <>
+              {/* Before Test Completion: 2 buttons, each in separate row */}
+              {!enrollmentData?.completed && (
+                <div className="enrolled-actions before-test">
+                  <button 
+                    onClick={handleStartTestClick} 
+                    className="action-btn test-btn"
+                    title="Take the course test"
+                  >
+                    🧪 Take Test
+                  </button>
+                  <button 
+                    onClick={handleUnenrollClick} 
+                    className="action-btn unenroll-btn"
+                    disabled={isUnenrolling || !onUnenroll}
+                    title="Unenroll from this course"
+                  >
+                    {isUnenrolling ? '⏳ Unenrolling...' : '❌ Unenroll'}
+                  </button>
+                </div>
               )}
               
-              {/* Certificate Button - Only show for eligible courses */}
-              {canShowCertificate && (
-                <button 
-                  onClick={handleCertificateClick} 
-                  className="action-btn certificate-btn success"
-                  title={`View your certificate! Score: ${scoreInfo.score}/${scoreInfo.total} (${scoreInfo.percentage}%)`}
-                >
-                  🎓 View Certificate
-                </button>
+              {/* After Test Completion: 3 buttons in first row, unenroll below */}
+              {enrollmentData?.completed && (
+                <div className="enrolled-actions after-test">
+                  {/* First row: 3 buttons */}
+                  <div className="after-test-row">
+                    <button 
+                      onClick={handleStartTestClick} 
+                      className="action-btn test-btn"
+                      title={`Retake test (Previous: ${scoreInfo.score}/${scoreInfo.total})`}
+                    >
+                      🔄 Retake Test
+                    </button>
+                    <button 
+                      onClick={handleCertificateClick} 
+                      className="action-btn certificate-btn"
+                      title={`View your certificate! Score: ${scoreInfo.score}/${scoreInfo.total} (${scoreInfo.percentage}%)`}
+                    >
+                      🎓 View Certificate
+                    </button>
+                    <button 
+                      onClick={handleRateClick} 
+                      className="action-btn rate-btn"
+                      title="Rate this course"
+                    >
+                      <StarIcon /> Rate Course
+                    </button>
+                  </div>
+                  {/* Second row: Unenroll button */}
+                  <div className="after-test-single">
+                    <button 
+                      onClick={handleUnenrollClick} 
+                      className="action-btn unenroll-btn"
+                      disabled={isUnenrolling || !onUnenroll}
+                      title="Unenroll from this course"
+                    >
+                      {isUnenrolling ? '⏳ Unenrolling...' : '❌ Unenroll'}
+                    </button>
+                  </div>
+                </div>
               )}
-              
-              {/* Rating Button - Always available for enrolled users */}
-              <button 
-                onClick={handleRateClick} 
-                className="action-btn rate-btn"
-                disabled={!enrollmentData?.completed}
-                title={enrollmentData?.completed ? "Rate this course" : "Complete the course to rate it"}
-              >
-                <StarIcon /> Rate Course
-              </button>
-
-              {/* Unenroll button - always visible for enrolled users */}
-              <button 
-                onClick={handleUnenrollClick} 
-                className="action-btn unenroll-btn danger"
-                disabled={isUnenrolling || !onUnenroll}
-                title="Unenroll from this course"
-              >
-                {isUnenrolling ? '⏳ Unenrolling...' : '❌ Unenroll'}
-              </button>
-            </div>
+            </>
           )}
         </div>
       </div>

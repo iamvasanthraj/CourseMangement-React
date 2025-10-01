@@ -24,6 +24,8 @@ const EnrollmentsSection = ({
 
   const getCourseFromEnrollment = (enrollment) => {
     if (enrollment.course) return enrollment.course;
+    
+    // ✅ FIX: Include ALL possible rating fields in course object
     return {
       id: enrollment.courseId,
       title: enrollment.courseTitle,
@@ -32,7 +34,11 @@ const EnrollmentsSection = ({
       price: enrollment.coursePrice || enrollment.price || 0,
       duration: enrollment.duration,
       level: enrollment.level,
-      description: enrollment.courseDescription
+      description: enrollment.courseDescription,
+      // ✅ Include rating data in course object too
+      averageRating: enrollment.courseAverageRating || enrollment.averageRating || enrollment.rating,
+      totalRatings: enrollment.courseTotalRatings || enrollment.totalRatings,
+      enrolledStudents: enrollment.enrolledStudents
     };
   };
 
@@ -138,6 +144,14 @@ const EnrollmentsSection = ({
           const enrollmentId = getEnrollmentId(enrollment);
           const course = getCourseFromEnrollment(enrollment);
 
+          // ✅ DEBUG: Log what data is being passed to CourseCard
+          console.log('🔍 Passing to CourseCard:', {
+            courseTitle: course.title,
+            courseRating: course.averageRating,
+            enrollmentRating: enrollment.courseAverageRating,
+            hasRating: enrollment.courseAverageRating > 0 || course.averageRating > 0
+          });
+
           return (
             <CourseCard 
               key={enrollmentId || `enrollment-${index}-${course?.id}`}
@@ -154,9 +168,10 @@ const EnrollmentsSection = ({
                 completed: enrollment.completed,
                 enrollmentDate: enrollment.enrollmentDate,
                 completionDate: enrollment.completionDate,
-                courseAverageRating: enrollment.courseAverageRating,
-                courseTotalRatings: enrollment.courseTotalRatings,
-                enrolledStudents: enrollment.enrolledStudents,
+                // ✅ FIX: Ensure rating fields are properly passed
+                courseAverageRating: enrollment.courseAverageRating || enrollment.averageRating || enrollment.rating || 0,
+                courseTotalRatings: enrollment.courseTotalRatings || enrollment.totalRatings || 0,
+                enrolledStudents: enrollment.enrolledStudents || 0,
                 instructorName: enrollment.instructorName,
                 duration: enrollment.duration,
                 level: enrollment.level,
@@ -167,7 +182,7 @@ const EnrollmentsSection = ({
               }}
               loading={loading}
               showEnrollButton={false}
-              showPrice={false} // Hide price in enrollments
+              showPrice={false}
             />
           );
         })}

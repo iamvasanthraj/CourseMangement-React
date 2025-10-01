@@ -1,3 +1,83 @@
+/* Improved Modal Animations */
+.modal-portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000; /* Very high z-index to ensure it's on top */
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.certificate-modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Smoother animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Apply animation to modal content */
+.modal-overlay > *,
+.certificate-modal-wrapper > * {
+  animation: slideIn 0.25s ease-out;
+  animation-fill-mode: both;
+}
+
+/* Stagger animation for modal elements if needed */
+.modal-overlay > * > * {
+  animation-delay: 0.1s;
+}
+
+/* Prevent background scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
 /* CourseCard.css */
 .course-card {
   position: relative;
@@ -231,12 +311,13 @@
   font-weight: 600;
 }
 
-/* Card actions */
+/* Card actions - UPDATED FOR FULL WIDTH BUTTONS */
 .card-actions {
   margin-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .action-btn {
@@ -252,6 +333,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
 }
 
 .enroll-btn {
@@ -262,6 +348,7 @@
 .enroll-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #059669, #047857);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .enroll-btn:disabled {
@@ -270,47 +357,96 @@
   transform: none;
 }
 
+/* ENROLLED ACTIONS - FIXED AND OPTIMIZED */
 .enrolled-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Before test layout - 2 buttons, each in separate row (vertical stack) */
+.enrolled-actions.before-test {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+/* After test layout - 3 buttons in first row, unenroll in second row */
+.enrolled-actions.after-test {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.after-test-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
+.after-test-single {
+  width: 100%;
+}
+/* Specific button styles with full width */
 .test-btn {
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   color: white;
 }
 
+.test-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
 .certificate-btn {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
+}
+
+.certificate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .rate-btn {
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #eab308, #ca8a04);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  border: none;
+}
+
+.rate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ca8a04, #a16207);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
 }
 
 .unenroll-btn {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
 }
 
-.action-btn:hover:not(:disabled) {
+.unenroll-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Certificate ribbon */
@@ -355,35 +491,6 @@
   fill: currentColor;
 }
 
-/* Modal overlays */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.certificate-modal-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
 /* Responsive design */
 @media (max-width: 768px) {
   .course-card {
@@ -420,6 +527,11 @@
   .action-btn {
     padding: 10px 14px;
     font-size: 0.85rem;
+  }
+  
+  /* Mobile responsive for after-test layout */
+  .after-test-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -461,5 +573,9 @@
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 8px;
+  }
+  
+  .after-test-row {
+    grid-template-columns: 1fr;
   }
 }

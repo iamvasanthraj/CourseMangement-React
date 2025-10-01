@@ -125,7 +125,7 @@ const enrolledStudents = course?.enrolledStudents !== undefined ?
               className="action-btn update-btn"
               disabled={loading}
             >
-              ✏️ Update
+              🛠️ Update
             </button>
             <button 
               onClick={handleDeleteClick}
