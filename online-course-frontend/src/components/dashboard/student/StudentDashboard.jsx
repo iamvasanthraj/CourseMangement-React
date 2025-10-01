@@ -1,7 +1,7 @@
 // components/dashboard/student/StudentDashboard.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import CourseCard from './CourseCard';
+import CourseCard from '../../dashboard/student/CourseCard';
 import { useDashboard } from '../../../hooks/useDashboard';
 import './StudentDashboard.css';
 
@@ -18,32 +18,38 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
 
   const navigate = useNavigate();
 
-  const enrolledCourseIds = enrollments.map(enrollment => enrollment.courseId);
-  
-  // Only show courses that are NOT enrolled
-  const availableCourses = courses.filter(course => !enrolledCourseIds.includes(course.id));
-  
+  const enrolledCourseIds = enrollments?.map(enrollment => enrollment.courseId) || [];
+  const availableCourses = courses?.filter(course => !enrolledCourseIds.includes(course.id)) || [];
   const filteredCourses = filter === 'ALL' 
     ? availableCourses 
     : availableCourses.filter(course => course.category === filter);
 
-  // Enhanced enroll handler with success message
   const handleEnrollWithMessage = async (courseId) => {
     try {
       await handleEnroll(courseId);
-      const course = courses.find(c => c.id === courseId);
+      const course = courses?.find(c => c.id === courseId);
       if (course) {
-        showMessage('success', `🎉 Successfully enrolled in "${course.title}"! Check "My Enrollments" to track your progress.`);
+        showMessage('success', `🎉 Successfully enrolled in "${course.title}"!`);
       } else {
         showMessage('success', '🎉 Successfully enrolled in the course!');
       }
     } catch (error) {
       console.error('Enrollment error:', error);
+      showMessage('error', 'Failed to enroll in the course. Please try again.');
     }
   };
 
+  // Calculate overall rating stats
+  const totalRatings = availableCourses.reduce((sum, course) => sum + (course.totalRatings || 0), 0);
+  const averageRating = availableCourses.length > 0 
+    ? (availableCourses.reduce((sum, course) => {
+        const rating = course.averageRating || 0;
+        return sum + (typeof rating === 'number' ? rating : parseFloat(rating) || 0);
+      }, 0) / availableCourses.length).toFixed(1)
+    : '0.0';
+
   return (
-    <div className="dashboard-section">
+    <div className="student-dashboard-container">
       <div className="section-header">
         <h2 className="section-title">📚 Available Courses</h2>
         <div className="section-controls">
@@ -56,10 +62,21 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
               onChange={(e) => setFilter(e.target.value)}
             >
               <option value="ALL">All Categories</option>
-              {categories.map(category => (
+              {categories?.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
+          </div>
+          
+          <div className="rating-stats">
+            <div className="rating-stat">
+              <span className="stat-label">Avg. Course Rating:</span>
+              <span className="stat-value">{averageRating} ⭐</span>
+            </div>
+            <div className="rating-stat">
+              <span className="stat-label">Total Ratings:</span>
+              <span className="stat-value">{totalRatings}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -69,18 +86,47 @@ const StudentDashboard = ({ filter, setFilter, categories }) => {
           <div className="quantum-loading">Loading courses...</div>
         </div>
       ) : (
-        <div className="courses-grid"> {/* This will now show 2 cards per row */}
-          {filteredCourses.map(course => (
-            <CourseCard 
-              key={course.id}
-              course={course}
-              user={user}
-              isEnrolled={false}
-              onEnroll={handleEnrollWithMessage}
-              loading={enrollingCourseId === course.id}
-              showEnrollButton={true}
-            />
-          ))}
+        <div className="courses-grid">
+          {filteredCourses?.map(course => {
+            const courseAverageRating = course.averageRating !== undefined 
+              ? (typeof course.averageRating === 'number' 
+                  ? course.averageRating 
+                  : parseFloat(course.averageRating) || 0)
+              : 0;
+            
+            const courseTotalRatings = course.totalRatings || 0;
+            const enrolledStudents = course.enrolledStudents || 0;
+
+            return (
+              <CourseCard 
+                key={course.id}
+                course={course}
+                user={user}
+                isEnrolled={false}
+                onEnroll={handleEnrollWithMessage}
+                loading={enrollingCourseId === course.id}
+                showEnrollButton={true}
+                enrollmentData={{
+                  courseAverageRating: courseAverageRating,
+                  courseTotalRatings: courseTotalRatings,
+                  enrolledStudents: enrolledStudents,
+                  instructorName: course.instructorName,
+                  duration: course.duration,
+                  level: course.level,
+                  batch: course.batch,
+                  courseDescription: course.description,
+                  courseTitle: course.title,
+                  courseCategory: course.category,
+                  completed: false,
+                  enrollmentDate: null,
+                  testScore: 0,
+                  totalQuestions: 10,
+                  percentage: 0
+                }}
+                showPrice={true} // Show price in student dashboard
+              />
+            );
+          })}
         </div>
       )}
       

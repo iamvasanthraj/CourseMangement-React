@@ -19,6 +19,24 @@ const MyCourses = () => {
     course.instructorId === user?.userId || course.instructorName === user?.username
   );
 
+  // ✅ FIXED: Calculate statistics with proper field names
+  const totalStudents = instructorCourses.reduce((total, course) => 
+    total + (course.enrolledStudents || 0), 0
+  );
+  
+  const totalRevenue = instructorCourses.reduce((total, course) => {
+    const price = course.price || 0;
+    const students = course.enrolledStudents || 0;
+    return total + (parseFloat(price) * students);
+  }, 0);
+  
+  // ✅ FIXED: Use averageRating instead of rating
+  const averageRating = instructorCourses.length > 0 
+    ? (instructorCourses.reduce((total, course) => 
+        total + (parseFloat(course.averageRating) || 0), 0) / instructorCourses.length
+      ).toFixed(1)
+    : '0.0';
+
   if (loading) {
     return (
       <div className="my-courses-page">
@@ -48,30 +66,21 @@ const MyCourses = () => {
           <div className="stat-card">
             <div className="stat-icon">👥</div>
             <div className="stat-content">
-              <div className="stat-number">
-                {instructorCourses.reduce((total, course) => total + (course.enrolledStudents || 0), 0)}
-              </div>
+              <div className="stat-number">{totalStudents}</div>
               <div className="stat-label">Total Students</div>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">⭐</div>
             <div className="stat-content">
-              <div className="stat-number">
-                {instructorCourses.length > 0 
-                  ? (instructorCourses.reduce((total, course) => total + (course.rating || 0), 0) / instructorCourses.length).toFixed(1)
-                  : '0.0'
-                }
-              </div>
+              <div className="stat-number">{averageRating}</div>
               <div className="stat-label">Average Rating</div>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">💰</div>
             <div className="stat-content">
-              <div className="stat-number">
-                ${instructorCourses.reduce((total, course) => total + (course.price || 0), 0)}
-              </div>
+              <div className="stat-number">${totalRevenue.toFixed(2)}</div>
               <div className="stat-label">Total Revenue</div>
             </div>
           </div>

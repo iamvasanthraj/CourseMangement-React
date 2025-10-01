@@ -14,13 +14,19 @@ public class CourseResponse {
     private String instructorName;
     private Long instructorId;
     private LocalDateTime createdAt;
+    
+    // ✅ ADD: Rating fields
+    private BigDecimal averageRating;
+    private Integer totalRatings;
+    private Integer enrolledStudents;
 
     // Constructors
     public CourseResponse() {}
 
-    public CourseResponse(Long id, String title, String category, String duration, 
-                         String batch, String level, BigDecimal price, 
-                         String instructorName, Long instructorId, LocalDateTime createdAt) {
+    // Original constructor
+    public CourseResponse(Long id, String title, String category, String duration, String batch, 
+                         String level, BigDecimal price, String instructorName, Long instructorId, 
+                         LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.category = category;
@@ -31,9 +37,33 @@ public class CourseResponse {
         this.instructorName = instructorName;
         this.instructorId = instructorId;
         this.createdAt = createdAt;
+        // Default values for new fields
+        this.averageRating = BigDecimal.ZERO;
+        this.totalRatings = 0;
+        this.enrolledStudents = 0;
     }
 
-    // Getters and Setters
+    // ✅ ADD: Enhanced constructor with rating fields
+    public CourseResponse(Long id, String title, String category, String duration, String batch, 
+                         String level, BigDecimal price, String instructorName, Long instructorId, 
+                         LocalDateTime createdAt, BigDecimal averageRating, Integer totalRatings, 
+                         Integer enrolledStudents) {
+        this.id = id;
+        this.title = title;
+        this.category = category;
+        this.duration = duration;
+        this.batch = batch;
+        this.level = level;
+        this.price = price;
+        this.instructorName = instructorName;
+        this.instructorId = instructorId;
+        this.createdAt = createdAt;
+        this.averageRating = averageRating;
+        this.totalRatings = totalRatings;
+        this.enrolledStudents = enrolledStudents;
+    }
+
+    // Getters and Setters for all fields...
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getTitle() { return title; }
@@ -54,4 +84,10 @@ public class CourseResponse {
     public void setInstructorId(Long instructorId) { this.instructorId = instructorId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public BigDecimal getAverageRating() { return averageRating; }
+    public void setAverageRating(BigDecimal averageRating) { this.averageRating = averageRating; }
+    public Integer getTotalRatings() { return totalRatings; }
+    public void setTotalRatings(Integer totalRatings) { this.totalRatings = totalRatings; }
+    public Integer getEnrolledStudents() { return enrolledStudents; }
+    public void setEnrolledStudents(Integer enrolledStudents) { this.enrolledStudents = enrolledStudents; }
 }

@@ -1,0 +1,390 @@
+/* components/shared/Unauthorized.css */
+.unauthorized-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.unauthorized-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.unauthorized-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+  background-size: 400% 400%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.error-icon {
+  font-size: 80px;
+  margin-bottom: 30px;
+  display: block;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.unauthorized-content h1 {
+  color: #2d3748;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.unauthorized-content p {
+  color: #718096;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.role-info {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.role-info h3 {
+  color: #4a5568;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-info h3 .info-icon {
+  font-size: 1.2rem;
+}
+
+.role-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.role-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.role-detail .status-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.role-detail .status-icon.allowed {
+  background: #48bb78;
+}
+
+.role-detail .status-icon.denied {
+  background: #f56565;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.quantum-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.quantum-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.quantum-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.quantum-btn-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+  backdrop-filter: blur(10px);
+}
+
+.quantum-btn-secondary:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #cbd5e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.quantum-btn:active {
+  transform: translateY(0);
+}
+
+.contact-support {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.contact-support p {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.support-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.3s ease;
+}
+
+.support-link:hover {
+  color: #5a67d8;
+}
+
+/* Role-specific styling */
+.role-student .error-icon {
+  color: #4299e1;
+}
+
+.role-instructor .error-icon {
+  color: #ed8936;
+}
+
+.role-admin .error-icon {
+  color: #9f7aea;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .unauthorized-container {
+    padding: 10px;
+  }
+  
+  .unauthorized-content {
+    padding: 40px 20px;
+    margin: 20px;
+  }
+  
+  .unauthorized-content h1 {
+    font-size: 2rem;
+  }
+  
+  .unauthorized-content p {
+    font-size: 1rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .quantum-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .role-info {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .unauthorized-content {
+    padding: 30px 15px;
+  }
+  
+  .unauthorized-content h1 {
+    font-size: 1.75rem;
+  }
+  
+  .error-icon {
+    font-size: 60px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .unauthorized-content {
+    background: rgba(45, 55, 72, 0.95);
+    color: #e2e8f0;
+  }
+  
+  .unauthorized-content h1 {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .unauthorized-content p {
+    color: #a0aec0;
+  }
+  
+  .role-info {
+    background: rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+  }
+  
+  .role-info h3 {
+    color: #e2e8f0;
+  }
+  
+  .role-detail {
+    color: #a0aec0;
+  }
+  
+  .quantum-btn-secondary {
+    background: rgba(45, 55, 72, 0.8);
+    color: #e2e8f0;
+    border-color: #4a5568;
+  }
+  
+  .quantum-btn-secondary:hover {
+    background: rgba(45, 55, 72, 1);
+    border-color: #718096;
+  }
+  
+  .contact-support {
+    border-top-color: #4a5568;
+  }
+  
+  .contact-support p {
+    color: #a0aec0;
+  }
+}
+
+/* Animation for page entrance */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.unauthorized-content {
+  animation: slideInUp 0.6s ease-out;
+}
+
+/* Accessibility improvements */
+.quantum-btn:focus {
+  outline: 3px solid rgba(102, 126, 234, 0.4);
+  outline-offset: 2px;
+}
+
+.quantum-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .unauthorized-content {
+    background: white;
+    border: 2px solid #000;
+  }
+  
+  .quantum-btn-primary {
+    background: #000;
+    color: #fff;
+    border: 2px solid #000;
+  }
+  
+  .quantum-btn-secondary {
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .error-icon {
+    animation: none;
+  }
+  
+  .unauthorized-content::before {
+    animation: none;
+    background: #667eea;
+  }
+  
+  .quantum-btn:hover {
+    transform: none;
+  }
+  
+  .unauthorized-content {
+    animation: none;
+  }
+}

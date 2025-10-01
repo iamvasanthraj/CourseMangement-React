@@ -12,9 +12,23 @@ const InstructorCourseCard = ({
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const averageRating = course?.rating || 0;
-  const totalRatings = course?.totalRatings || 0;
-  const enrolledStudents = course?.enrolledStudents || 0;
+  // ✅ FIXED: Use the correct field names from Course entity
+// In InstructorCourseCard.jsx - ensure these lines are correct:
+const averageRating = course?.averageRating !== undefined ? 
+  (typeof course.averageRating === 'number' ? course.averageRating : course.averageRating?.doubleValue() || 0) : 0;
+
+const totalRatings = course?.totalRatings || 0;
+
+const enrolledStudents = course?.enrolledStudents !== undefined ? 
+  course.enrolledStudents : 
+  (course.enrollments ? course.enrollments.length : 0);
+  
+  // ✅ FIXED: Get instructor name safely
+  const instructorName = course?.instructorName || 
+                        course?.instructor?.name || 
+                        course?.instructor?.username || 
+                        course?.instructor?.email?.split('@')[0] || 
+                        'Course Instructor';
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);
@@ -42,6 +56,18 @@ const InstructorCourseCard = ({
     setShowUpdateModal(false);
   };
 
+  // ✅ FIXED: Format rating display
+  const formatRating = (rating) => {
+    if (typeof rating === 'number') {
+      return rating.toFixed(1);
+    }
+    if (typeof rating === 'object' && rating !== null) {
+      // Handle BigDecimal or other number objects
+      return parseFloat(rating.toString()).toFixed(1);
+    }
+    return '0.0';
+  };
+
   return (
     <>
       <div className="instructor-course-card quantum-glass">
@@ -52,16 +78,18 @@ const InstructorCourseCard = ({
 
         <div className="card-content">
           <h3 className="course-title">{course.title}</h3>
-          <p className="course-description">{course.description}</p>
+          <p className="course-description">
+            {course.description || `Learn ${course.title} through comprehensive lessons and hands-on projects.`}
+          </p>
 
           <div className="course-meta">
             <div className="meta-item">
               <span className="meta-icon">👨‍🏫</span>
-              {course.instructorName}
+              {instructorName}
             </div>
             <div className="meta-item">
               <span className="meta-icon">👥</span>
-              {enrolledStudents} students
+              {enrolledStudents} {enrolledStudents === 1 ? 'student' : 'students'}
             </div>
             {course.batch && (
               <div className="meta-item">
@@ -73,7 +101,10 @@ const InstructorCourseCard = ({
 
           <div className="course-stats">
             <div className="stat">
-              <span className="stat-value">{averageRating.toFixed(1)} ({totalRatings})</span>
+              <span className="stat-value">
+                {formatRating(averageRating)} 
+                {totalRatings > 0 && ` (${totalRatings})`}
+              </span>
               <span className="stat-label">Rating</span>
             </div>
             <div className="stat">

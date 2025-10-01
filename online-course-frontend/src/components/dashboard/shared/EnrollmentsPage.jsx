@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { coursesAPI, enrollmentAPI } from '../../../services/api';
-import CourseCard from '../student/CourseCard';
+// ✅ FIXED: Import CourseCard from correct location
+import CourseCard from '../../shared/CourseCard';
 import EnrollmentsModal from '../instructor/EnrollmentsModal';
 import RatingModal from '../../shared/RatingModal';
 import './EnrollmentsPage.css';
@@ -25,82 +26,62 @@ const EnrollmentsPage = () => {
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   }, []);
 
-// In your EnrollmentsPage component, update the loadData function:
-
-const loadData = useCallback(async () => {
-  try {
-    setLoading(true);
-    
-    if (user?.role === 'INSTRUCTOR') {
-      const response = await coursesAPI.getAll();
-      console.log('👨‍🏫 Instructor courses response:', response);
+  // ✅ FIXED: Updated loadData function with better error handling
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
       
-      const coursesData = Array.isArray(response) ? response : 
-                         Array.isArray(response?.data) ? response.data : [];
-      
-      const instructorCourses = coursesData.filter(course => 
-        course.instructorId === user?.userId
-      );
-      
-      setData(instructorCourses);
-    } else if (user?.role === 'STUDENT') {
-      // FIX: Use the improved enrollment API
-      const enrollmentsData = await enrollmentAPI.getStudentEnrollments(user.userId);
-      console.log('🎓 Processed enrollments data:', enrollmentsData);
-      
-      // FIX: Add rate limiting and better error handling for course details
-      const enrollmentsWithCourses = await Promise.all(
-        enrollmentsData.map(async (enrollment, index) => {
-          // Add small delay to prevent overwhelming the server
-          if (index > 0) await new Promise(resolve => setTimeout(resolve, 100));
-          
-          if (!enrollment?.courseId) {
-            console.warn('Enrollment missing courseId:', enrollment);
-            return null;
-          }
-
-          try {
-            const courseData = await coursesAPI.getById(enrollment.courseId);
-            console.log(`📘 Course ${enrollment.courseId} loaded:`, courseData);
-            
-            return {
-              ...enrollment,
-              course: courseData,
-              enrollmentId: enrollment.enrollmentId || enrollment.id,
-              completed: enrollment.completed || false,
-              studentName: user.username,
-              studentId: user.userId
-            };
-          } catch (error) {
-            console.error(`❌ Error loading course ${enrollment.courseId}:`, error);
-            return {
-              ...enrollment,
-              course: { 
-                id: enrollment.courseId, 
-                title: 'Course not available',
-                category: 'Unknown',
-                description: 'Failed to load course details'
-              },
-              enrollmentId: enrollment.enrollmentId || enrollment.id,
-              completed: enrollment.completed || false,
-              studentName: user.username,
-              studentId: user.userId
-            };
-          }
-        })
-      );
-      
-      const validEnrollments = enrollmentsWithCourses.filter(Boolean);
-      console.log('✅ Final enrollments:', validEnrollments);
-      setData(validEnrollments);
+      if (user?.role === 'INSTRUCTOR') {
+        const response = await coursesAPI.getAll();
+        console.log('👨‍🏫 Instructor courses response:', response);
+        
+        const coursesData = Array.isArray(response) ? response : 
+                           Array.isArray(response?.data) ? response.data : [];
+        
+        const instructorCourses = coursesData.filter(course => 
+          course.instructorId === user?.userId
+        );
+        
+        setData(instructorCourses);
+      } else if (user?.role === 'STUDENT') {
+        // ✅ FIXED: Use the improved enrollment API directly
+        const enrollmentsData = await enrollmentAPI.getStudentEnrollments(user.userId);
+        console.log('🎓 Processed enrollments data:', enrollmentsData);
+        
+        // ✅ FIXED: Use enrollment data directly without additional course API calls
+        const processedEnrollments = enrollmentsData.map(enrollment => {
+          // ✅ FIXED: Create proper enrollment data structure for CourseCard
+          return {
+            ...enrollment,
+            enrollmentId: enrollment.enrollmentId || enrollment.id,
+            completed: enrollment.completed || false,
+            studentName: user.username,
+            studentId: user.userId,
+            // ✅ ADD: Ensure all required fields for CourseCard are present
+            course: {
+              id: enrollment.courseId,
+              title: enrollment.courseTitle,
+              category: enrollment.courseCategory,
+              instructorName: enrollment.instructorName,
+              duration: enrollment.duration,
+              level: enrollment.level,
+              price: enrollment.price,
+              description: enrollment.courseDescription || `Master ${enrollment.courseTitle} through comprehensive lessons.`
+            }
+          };
+        });
+        
+        console.log('✅ Final processed enrollments:', processedEnrollments);
+        setData(processedEnrollments);
+      }
+    } catch (error) {
+      console.error('❌ Error loading data:', error);
+      showMessage('error', `Failed to load ${user?.role === 'INSTRUCTOR' ? 'courses' : 'enrollments'}`);
+      setData([]); // Set empty array on error
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('❌ Error loading data:', error);
-    showMessage('error', `Failed to load ${user?.role === 'INSTRUCTOR' ? 'courses' : 'enrollments'}`);
-  } finally {
-    setLoading(false);
-  }
-}, [user, showMessage]);
+  }, [user, showMessage]);
 
   // Course management for instructors
   const handleDeleteCourse = async (courseId) => {
@@ -171,10 +152,23 @@ const loadData = useCallback(async () => {
   };
 
   // Student enrollment actions
-  const handleUnenroll = async (enrollmentId) => {
+  const handleUnenroll = async (unenrollData) => {
     try {
       setLoading(true);
-      await enrollmentAPI.unenroll(enrollmentId);
+      const { enrollmentId, courseId } = unenrollData;
+      
+      if (enrollmentId) {
+        await enrollmentAPI.unenroll(enrollmentId);
+      } else if (courseId && user?.userId) {
+        // Find enrollment by courseId and userId
+        const enrollmentToDelete = data.find(e => 
+          e.courseId === courseId && e.studentId === user.userId
+        );
+        if (enrollmentToDelete?.enrollmentId) {
+          await enrollmentAPI.unenroll(enrollmentToDelete.enrollmentId);
+        }
+      }
+      
       showMessage('success', 'Unenrolled successfully!');
       await loadData();
     } catch (error) {
@@ -197,32 +191,33 @@ const loadData = useCallback(async () => {
     });
   };
 
+  // ✅ FIXED: Add handleRate function for CourseCard
+  const handleRate = async (courseId, ratingValue, ratingData = {}) => {
+    try {
+      // Find the enrollment for this course
+      const enrollment = data.find(e => e.courseId === courseId);
+      if (!enrollment?.enrollmentId) {
+        throw new Error('Enrollment not found for rating');
+      }
+
+      // Use the completeCourse API to submit rating
+      await enrollmentAPI.completeCourse(enrollment.enrollmentId, {
+        rating: ratingValue,
+        feedback: ratingData.feedback || 'Rated by student',
+        completed: true
+      });
+
+      showMessage('success', '⭐ Rating submitted successfully!');
+      await loadData(); // Refresh data to show updated rating
+    } catch (error) {
+      console.error('Rating error:', error);
+      showMessage('error', 'Failed to submit rating');
+      throw error;
+    }
+  };
+
   const handleGenerateCertificate = (enrollment) => {
     showMessage('info', 'Certificate generation feature coming soon!');
-  };
-
-  // Rating functions
-  const handleRateCourse = (course) => {
-    setSelectedCourse(course);
-    setShowRatingModal(true);
-  };
-
-  const submitRating = async () => {
-    try {
-      await ratingAPI.rate({
-        stars: rating.stars,
-        comment: rating.comment,
-        studentId: user.userId,
-        courseId: selectedCourse.id
-      });
-      setShowRatingModal(false);
-      setRating({ stars: 5, comment: '' });
-      setSelectedCourse(null);
-      showMessage('success', 'Rating submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting rating:', error);
-      showMessage('error', 'Failed to submit rating');
-    }
   };
 
   // For student enrollments - dummy enroll function
@@ -410,10 +405,21 @@ const loadData = useCallback(async () => {
                   user={user}
                   isEnrolled={true}
                   onEnroll={handleEnroll}
-                  onRate={handleRateCourse}
+                  onRate={handleRate}
+                  onUnenroll={handleUnenroll}
                   onStartTest={() => handleStartTest(enrollment)}
                   loading={loading}
                   showEnrollButton={false}
+                  // ✅ ADD: Pass enrollment data with rating information
+                  enrollmentData={{
+                    ...enrollment,
+                    courseAverageRating: enrollment.courseAverageRating,
+                    courseTotalRatings: enrollment.courseTotalRatings,
+                    enrolledStudents: enrollment.enrolledStudents,
+                    instructorName: enrollment.instructorName,
+                    duration: enrollment.duration,
+                    level: enrollment.level
+                  }}
                 />
               ))
             )}
@@ -428,18 +434,6 @@ const loadData = useCallback(async () => {
             onMarkComplete={handleMarkComplete}
             onGenerateCertificate={handleGenerateCertificate}
             onClose={() => setShowEnrollmentsModal(false)}
-          />
-        )}
-
-        {/* Rating Modal for Students */}
-        {showRatingModal && selectedCourse && (
-          <RatingModal
-            course={selectedCourse}
-            studentId={user.userId}
-            courseId={selectedCourse.id}
-            rating={rating}
-            onRatingChange={setRating}
-            onClose={() => setShowRatingModal(false)}
           />
         )}
       </div>

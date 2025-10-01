@@ -21,9 +21,29 @@ const ProfilePage = () => {
 
   const completedCourses = enrollments.filter(e => e.completed).length;
   const inProgressCourses = enrollments.filter(e => !e.completed).length;
+  
+  // ✅ FIXED: Use averageRating instead of rating
   const averageRating = user?.role === 'INSTRUCTOR' 
-    ? courses.reduce((acc, course) => acc + (course.rating || 0), 0) / (courses.length || 1)
+    ? courses.reduce((acc, course) => {
+        const rating = course.averageRating !== undefined 
+          ? (typeof course.averageRating === 'number' ? course.averageRating : parseFloat(course.averageRating) || 0)
+          : 0;
+        return acc + rating;
+      }, 0) / (courses.length || 1)
     : null;
+
+  // ✅ FIXED: Calculate total students with proper field
+  const totalStudents = courses.reduce((acc, course) => {
+    const students = course.enrolledStudents || 0;
+    return acc + students;
+  }, 0);
+
+  // ✅ FIXED: Calculate total revenue
+  const totalRevenue = courses.reduce((acc, course) => {
+    const price = parseFloat(course.price) || 0;
+    const students = course.enrolledStudents || 0;
+    return acc + (price * students);
+  }, 0);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -100,7 +120,7 @@ const ProfilePage = () => {
               <div className="stat">
                 <span className="stat-number">
                   {user?.role === 'INSTRUCTOR' 
-                    ? courses.reduce((acc, course) => acc + (course.enrolledStudents || 0), 0)
+                    ? totalStudents
                     : inProgressCourses
                   }
                 </span>
@@ -205,8 +225,10 @@ const ProfilePage = () => {
                   <h4>{course.title}</h4>
                   <p className="course-meta">{course.category} • {course.level}</p>
                   <div className="course-stats">
+                    {/* ✅ FIXED: Use enrolledStudents instead of enrolledStudents */}
                     <span>👥 {course.enrolledStudents || 0} students</span>
-                    <span>⭐ {course.rating?.toFixed(1) || '0.0'}</span>
+                    {/* ✅ FIXED: Use averageRating instead of rating */}
+                    <span>⭐ {course.averageRating ? parseFloat(course.averageRating).toFixed(1) : '0.0'}</span>
                   </div>
                 </div>
               ))}
@@ -274,9 +296,7 @@ const ProfilePage = () => {
               <div className="stat-card">
                 <div className="stat-icon">👥</div>
                 <div className="stat-content">
-                  <div className="stat-number">
-                    {courses.reduce((acc, course) => acc + (course.enrolledStudents || 0), 0)}
-                  </div>
+                  <div className="stat-number">{totalStudents}</div>
                   <div className="stat-label">Total Students</div>
                 </div>
               </div>
@@ -290,9 +310,7 @@ const ProfilePage = () => {
               <div className="stat-card">
                 <div className="stat-icon">💰</div>
                 <div className="stat-content">
-                  <div className="stat-number">
-                    ${courses.reduce((acc, course) => acc + (course.price || 0), 0)}
-                  </div>
+                  <div className="stat-number">${totalRevenue.toFixed(2)}</div>
                   <div className="stat-label">Total Revenue</div>
                 </div>
               </div>

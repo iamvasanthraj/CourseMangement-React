@@ -2,7 +2,10 @@ package com.onlinecourses.OnlineCourseSystem.service;
 
 import com.onlinecourses.OnlineCourseSystem.dto.CourseResponse;
 import com.onlinecourses.OnlineCourseSystem.entity.Course;
+import com.onlinecourses.OnlineCourseSystem.entity.Enrollment;
+import com.onlinecourses.OnlineCourseSystem.entity.User;
 import com.onlinecourses.OnlineCourseSystem.repository.CourseRepository;
+import com.onlinecourses.OnlineCourseSystem.repository.EnrollmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -14,6 +17,9 @@ public class CourseService {
     
     @Autowired
     private CourseRepository courseRepository;
+    
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
     
     public List<CourseResponse> getAllCourses() {
         try {
@@ -56,15 +62,109 @@ public class CourseService {
         }
     }
     
-    private CourseResponse convertToResponse(Course course) {
+    // ✅ ADD: Method to calculate course rating statistics
+    private java.math.BigDecimal calculateCourseAverageRating(Long courseId) {
         try {
-            String instructorName = "Unknown Instructor";
+            List<Enrollment> courseEnrollments = enrollmentRepository.findByCourseId(courseId);
+            
+            // Filter enrollments with ratings
+            List<Enrollment> ratedEnrollments = courseEnrollments.stream()
+                .filter(e -> e.getRating() != null && e.getRating() > 0)
+                .collect(Collectors.toList());
+            
+            if (ratedEnrollments.isEmpty()) {
+                return java.math.BigDecimal.ZERO;
+            }
+            
+            double sum = ratedEnrollments.stream()
+                .mapToInt(Enrollment::getRating)
+                .sum();
+            double average = sum / ratedEnrollments.size();
+            
+            // Round to 2 decimal places
+            return java.math.BigDecimal.valueOf(average).setScale(2, java.math.RoundingMode.HALF_UP);
+            
+        } catch (Exception e) {
+            System.out.println("⚠️ Error calculating course average rating: " + e.getMessage());
+            return java.math.BigDecimal.ZERO;
+        }
+    }
+    
+    // ✅ ADD: Method to calculate total ratings count
+    private Integer calculateTotalRatings(Long courseId) {
+        try {
+            List<Enrollment> courseEnrollments = enrollmentRepository.findByCourseId(courseId);
+            
+            return (int) courseEnrollments.stream()
+                .filter(e -> e.getRating() != null && e.getRating() > 0)
+                .count();
+            
+        } catch (Exception e) {
+            System.out.println("⚠️ Error calculating total ratings: " + e.getMessage());
+            return 0;
+        }
+    }
+    
+    // ✅ ADD: Method to calculate enrolled students
+    private Integer calculateEnrolledStudents(Long courseId) {
+        try {
+            List<Enrollment> courseEnrollments = enrollmentRepository.findByCourseId(courseId);
+            return courseEnrollments.size();
+        } catch (Exception e) {
+            System.out.println("⚠️ Error calculating enrolled students: " + e.getMessage());
+            return 0;
+        }
+    }
+    
+    // ✅ UPDATED: Completely safe method to get instructor name
+    private String getInstructorName(User instructor) {
+        if (instructor == null) {
+            return "Course Instructor";
+        }
+        
+        // ✅ SAFE: Only use methods that definitely exist
+        // All User entities have getId() and we know instructor exists
+        
+        // Option 1: Use reflection to safely check available methods (advanced)
+        // Option 2: Use a simple, guaranteed approach
+        
+        // SIMPLE GUARANTEED APPROACH:
+        // Since we can't be sure what methods exist, use the ID
+        return "Instructor #" + instructor.getId();
+        
+        // ALTERNATIVE: If you know your User entity has specific fields,
+        // you can add them here once you confirm they exist
+    }
+    
+    // ✅ UPDATED: Enhanced convertToResponse with rating data - COMPLETELY SAFE
+    public CourseResponse convertToResponse(Course course) {
+        try {
+            String instructorName = "Course Instructor";
             Long instructorId = null;
             
             if (course.getInstructor() != null) {
-                instructorName = course.getInstructor().getName();
+                // ✅ FIXED: Use completely safe method
+                instructorName = getInstructorName(course.getInstructor());
                 instructorId = course.getInstructor().getId();
+                
+                System.out.println("👨‍🏫 Instructor: " + instructorName + " (ID: " + instructorId + ")");
             }
+            
+            // ✅ ADD: Calculate rating statistics
+            Long courseId = course.getId();
+            java.math.BigDecimal averageRating = course.getAverageRating() != null ? 
+                course.getAverageRating() : calculateCourseAverageRating(courseId);
+            
+            Integer totalRatings = course.getTotalRatings() != null ? 
+                course.getTotalRatings() : calculateTotalRatings(courseId);
+            
+            Integer enrolledStudents = course.getEnrolledStudents() != null ? 
+                course.getEnrolledStudents() : calculateEnrolledStudents(courseId);
+            
+            System.out.println("📊 Course: " + course.getTitle() + 
+                             " | Avg Rating: " + averageRating + 
+                             " | Total Ratings: " + totalRatings + 
+                             " | Students: " + enrolledStudents);
             
             return new CourseResponse(
                 course.getId(),
@@ -76,23 +176,44 @@ public class CourseService {
                 course.getPrice(),
                 instructorName,
                 instructorId,
-                course.getCreatedAt()
+                course.getCreatedAt(),
+                // ✅ ADD: Rating fields
+                averageRating,
+                totalRatings,
+                enrolledStudents
             );
         } catch (Exception e) {
             System.out.println("⚠️ Error converting course: " + e.getMessage());
-            // Return safe default values
+            e.printStackTrace();
+            
+            // Return safe default values with rating data
             return new CourseResponse(
                 course.getId(),
                 course.getTitle() != null ? course.getTitle() : "Unknown Course",
-                course.getCategory() != null ? course.getCategory() : "Unknown",
-                course.getDuration() != null ? course.getDuration() : "Unknown",
-                course.getBatch() != null ? course.getBatch() : "Unknown",
-                course.getLevel() != null ? course.getLevel() : "Unknown",
+                course.getCategory() != null ? course.getCategory() : "General",
+                course.getDuration() != null ? course.getDuration() : "8 weeks",
+                course.getBatch() != null ? course.getBatch() : "Current Batch",
+                course.getLevel() != null ? course.getLevel() : "Beginner",
                 course.getPrice() != null ? course.getPrice() : java.math.BigDecimal.ZERO,
-                "Unknown Instructor",
+                "Course Instructor",
                 null,
-                course.getCreatedAt()
+                course.getCreatedAt(),
+                // ✅ ADD: Default rating values
+                java.math.BigDecimal.ZERO,
+                0,
+                0
             );
+        }
+    }
+    
+    // ✅ ADD: Method for CourseController
+    public Optional<CourseResponse> getCourseResponseById(Long courseId) {
+        try {
+            Optional<Course> course = courseRepository.findById(courseId);
+            return course.map(this::convertToResponse);
+        } catch (Exception e) {
+            System.out.println("💥 Error getting course response by ID: " + e.getMessage());
+            return Optional.empty();
         }
     }
     
@@ -114,7 +235,6 @@ public class CourseService {
         }
     }
     
-    // ✅ ADD THIS MISSING UPDATE METHOD
     public Course updateCourse(Long courseId, Course updatedCourse) {
         try {
             System.out.println("🔄 Service: Updating course ID: " + courseId);

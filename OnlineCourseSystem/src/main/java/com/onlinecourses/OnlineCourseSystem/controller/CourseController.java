@@ -27,6 +27,16 @@ public class CourseController {
         try {
             System.out.println("🔍 === GET ALL COURSES REQUESTED ===");
             List<CourseResponse> courses = courseService.getAllCourses();
+            
+            // ✅ ADD: Debug logging for course data
+            courses.forEach(course -> {
+                System.out.println("📊 Course: " + course.getTitle() + 
+                                 " | Avg Rating: " + course.getAverageRating() + 
+                                 " | Total Ratings: " + course.getTotalRatings() + 
+                                 " | Students: " + course.getEnrolledStudents() +
+                                 " | Instructor: " + course.getInstructorName());
+            });
+            
             System.out.println("✅ Successfully retrieved " + courses.size() + " courses");
             return ResponseEntity.ok(courses);
         } catch (Exception e) {
@@ -39,14 +49,25 @@ public class CourseController {
     public ResponseEntity<?> getCourseById(@PathVariable Long courseId) {
         try {
             System.out.println("🔍 === GET COURSE BY ID: " + courseId + " ===");
-            Optional<Course> course = courseService.getCourseById(courseId);
+            Optional<CourseResponse> courseResponse = courseService.getCourseResponseById(courseId);
             
-            if (course.isPresent()) {
-                System.out.println("✅ Course found: " + course.get().getTitle());
-                return ResponseEntity.ok(course.get());
+            if (courseResponse.isPresent()) {
+                CourseResponse course = courseResponse.get();
+                System.out.println("✅ Course found: " + course.getTitle());
+                System.out.println("📊 Course Details - Avg Rating: " + course.getAverageRating() + 
+                                 ", Total Ratings: " + course.getTotalRatings() + 
+                                 ", Students: " + course.getEnrolledStudents());
+                return ResponseEntity.ok(course);
             } else {
-                System.out.println("❌ Course not found: " + courseId);
-                return ResponseEntity.notFound().build();
+                // Fallback: try to get raw Course entity
+                Optional<Course> course = courseService.getCourseById(courseId);
+                if (course.isPresent()) {
+                    System.out.println("⚠️ Using fallback Course entity for: " + course.get().getTitle());
+                    return ResponseEntity.ok(course.get());
+                } else {
+                    System.out.println("❌ Course not found: " + courseId);
+                    return ResponseEntity.notFound().build();
+                }
             }
         } catch (Exception e) {
             System.out.println("💥 ERROR in getCourseById: " + e.getMessage());
@@ -57,9 +78,18 @@ public class CourseController {
     @GetMapping("/category/{category}")
     public ResponseEntity<?> getCoursesByCategory(@PathVariable String category) {
         try {
+            System.out.println("🔍 === GET COURSES BY CATEGORY: " + category + " ===");
             List<CourseResponse> courses = courseService.getCoursesByCategory(category);
+            
+            // ✅ ADD: Debug logging
+            courses.forEach(course -> {
+                System.out.println("📊 " + category + " Course: " + course.getTitle() + 
+                                 " | Rating: " + course.getAverageRating());
+            });
+            
             return ResponseEntity.ok(courses);
         } catch (Exception e) {
+            System.out.println("💥 ERROR in getCoursesByCategory: " + e.getMessage());
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
@@ -67,9 +97,19 @@ public class CourseController {
     @GetMapping("/instructor/{instructorId}")
     public ResponseEntity<?> getInstructorCourses(@PathVariable Long instructorId) {
         try {
+            System.out.println("🔍 === GET INSTRUCTOR COURSES: " + instructorId + " ===");
             List<CourseResponse> courses = courseService.getInstructorCourses(instructorId);
+            
+            // ✅ ADD: Debug logging
+            courses.forEach(course -> {
+                System.out.println("📊 Instructor Course: " + course.getTitle() + 
+                                 " | Avg Rating: " + course.getAverageRating() + 
+                                 " | Students: " + course.getEnrolledStudents());
+            });
+            
             return ResponseEntity.ok(courses);
         } catch (Exception e) {
+            System.out.println("💥 ERROR in getInstructorCourses: " + e.getMessage());
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
@@ -77,6 +117,7 @@ public class CourseController {
     @PostMapping
     public ResponseEntity<?> createCourse(@RequestBody CourseRequest courseRequest) {
         try {
+            System.out.println("🔍 === CREATE COURSE REQUESTED ===");
             Optional<User> instructor = userService.findById(courseRequest.getInstructorId());
             if (instructor.isEmpty()) {
                 return ResponseEntity.badRequest().body("Instructor not found");
@@ -92,13 +133,18 @@ public class CourseController {
             course.setInstructor(instructor.get());
 
             Course savedCourse = courseService.createCourse(course);
-            return ResponseEntity.ok(savedCourse);
+            
+            // ✅ ADD: Convert to CourseResponse for consistent response
+            CourseResponse response = courseService.convertToResponse(savedCourse);
+            System.out.println("✅ Course created successfully: " + response.getTitle());
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.out.println("💥 ERROR in createCourse: " + e.getMessage());
             return ResponseEntity.badRequest().body("Failed to create course: " + e.getMessage());
         }
     }
 
-    // ✅ ADD THIS PUT ENDPOINT FOR UPDATING COURSES
     @PutMapping("/{courseId}")
     public ResponseEntity<?> updateCourse(
             @PathVariable Long courseId,
@@ -113,8 +159,14 @@ public class CourseController {
             
             Course updated = courseService.updateCourse(courseId, updatedCourse);
             
-            System.out.println("✅ Course updated successfully: " + updated.getTitle());
-            return ResponseEntity.ok(updated);
+            // ✅ ADD: Convert to CourseResponse for consistent response
+            CourseResponse response = courseService.convertToResponse(updated);
+            
+            System.out.println("✅ Course updated successfully: " + response.getTitle());
+            System.out.println("📊 Updated Course Stats - Avg Rating: " + response.getAverageRating() + 
+                             ", Total Ratings: " + response.getTotalRatings());
+            
+            return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
             System.out.println("❌ ERROR updating course: " + e.getMessage());
@@ -131,9 +183,12 @@ public class CourseController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
         try {
+            System.out.println("🗑️ === DELETE COURSE REQUESTED: " + id + " ===");
             courseService.deleteCourse(id);
+            System.out.println("✅ Course deleted successfully: " + id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            System.out.println("💥 ERROR in deleteCourse: " + e.getMessage());
             return ResponseEntity.badRequest().body("Failed to delete course");
         }
     }

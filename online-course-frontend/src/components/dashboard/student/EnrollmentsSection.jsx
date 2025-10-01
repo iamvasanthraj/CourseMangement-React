@@ -1,6 +1,7 @@
+// components/enrollments/EnrollmentsSection.jsx
 import React from 'react';
 import './EnrollmentsSection.css';
-import CourseCard from './CourseCard';
+import CourseCard from '../../dashboard/student/CourseCard';
 
 const EnrollmentsSection = ({ 
   enrollments, 
@@ -9,16 +10,14 @@ const EnrollmentsSection = ({
   onRate, 
   user, 
   onStartTest,
-  onViewCertificate, // ✅ ADD: Certificate handler
+  onViewCertificate,
   showMessage
 }) => {
-  // Stats
   const totalEnrollments = enrollments.length;
   const completedCount = enrollments.filter(e => e?.completed).length;
   const inProgressCount = enrollments.filter(e => !e?.completed).length;
   const ratedCount = enrollments.filter(e => e?.rating).length;
 
-  // Helpers
   const getEnrollmentId = (enrollment) => {
     return enrollment?.enrollmentId || enrollment?.id;
   };
@@ -30,17 +29,20 @@ const EnrollmentsSection = ({
       title: enrollment.courseTitle,
       category: enrollment.courseCategory,
       instructorName: enrollment.instructorName,
+      price: enrollment.coursePrice || enrollment.price || 0,
+      duration: enrollment.duration,
+      level: enrollment.level,
+      description: enrollment.courseDescription
     };
   };
 
-  // Enhanced Unenroll handler
   const handleUnenrollWithMessage = async (unenrollData) => {
     try {
       await onUnenroll(unenrollData);
       if (showMessage) {
         showMessage(
           'success',
-          `✅ Successfully unenrolled from "${unenrollData.courseTitle}"! The course has been returned to available courses.`
+          `✅ Successfully unenrolled from "${unenrollData.courseTitle}"!`
         );
       }
     } catch (error) {
@@ -48,7 +50,6 @@ const EnrollmentsSection = ({
     }
   };
 
-  // Enhanced Rate handler
   const handleRateWithMessage = async (courseId, rating, ratingData) => {
     try {
       await onRate(courseId, rating, ratingData);
@@ -63,7 +64,6 @@ const EnrollmentsSection = ({
     }
   };
 
-  // ✅ ADD: Certificate handler
   const handleViewCertificateWithMessage = async (enrollmentId) => {
     try {
       const certificate = onViewCertificate(enrollmentId);
@@ -96,7 +96,6 @@ const EnrollmentsSection = ({
   return (
     <div className="quantum-enrollments-section">
       <div className="section-header">
-        {/* Quick Stats Section */}
         <div className="enrollments-stats-grid">
           <div className="stat-card quantum-glass">
             <div className="stat-icon">📚</div>
@@ -120,26 +119,15 @@ const EnrollmentsSection = ({
             </div>
           </div>
           <div className="stat-card quantum-glass">
-  <div className="stat-icon">🏆</div>
-  <div className="stat-content">
-    <div className="stat-number">{completedCount}</div>
-    <div className="stat-label">Certificates Earned</div>
-  </div>
-</div>
-          {/* <div className="stat-card quantum-glass">
-            <div className="stat-icon">⭐</div>
+            <div className="stat-icon">🏆</div>
             <div className="stat-content">
-              <div className="stat-number">{ratedCount}</div>
-              <div className="stat-label">Rated</div>
+              <div className="stat-number">{completedCount}</div>
+              <div className="stat-label">Certificates Earned</div>
             </div>
-          </div> */}
+          </div>
         </div>
-
-       
-    
       </div>
 
-      {/* Course Cards Grid */}
       <div className="quantum-enrollments-grid">
         {enrollments.map((enrollment, index) => {
           if (!enrollment) {
@@ -159,15 +147,27 @@ const EnrollmentsSection = ({
               onStartTest={onStartTest}
               onRate={handleRateWithMessage}  
               onUnenroll={handleUnenrollWithMessage}
-              onViewCertificate={handleViewCertificateWithMessage} // ✅ PASS: Certificate handler
+              onViewCertificate={handleViewCertificateWithMessage}
               enrollmentData={{
                 ...enrollment,
                 enrollmentId: enrollmentId,
                 completed: enrollment.completed,
-                enrollmentDate: enrollment.enrollmentDate
+                enrollmentDate: enrollment.enrollmentDate,
+                completionDate: enrollment.completionDate,
+                courseAverageRating: enrollment.courseAverageRating,
+                courseTotalRatings: enrollment.courseTotalRatings,
+                enrolledStudents: enrollment.enrolledStudents,
+                instructorName: enrollment.instructorName,
+                duration: enrollment.duration,
+                level: enrollment.level,
+                batch: enrollment.batch,
+                testScore: enrollment.testScore,
+                totalQuestions: enrollment.totalQuestions,
+                percentage: enrollment.percentage
               }}
               loading={loading}
               showEnrollButton={false}
+              showPrice={false} // Hide price in enrollments
             />
           );
         })}

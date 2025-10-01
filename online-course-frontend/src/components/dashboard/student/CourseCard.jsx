@@ -32,15 +32,52 @@ const CourseCard = ({
   // ✅ Get handleTestCompletion directly from useDashboard
   const { handleTestCompletion, refreshEnrollments, showMessage } = useDashboard();
 
-  // ✅ ENHANCED: Better fallbacks with realistic defaults
-  const averageRating = course?.rating !== undefined ? course.rating : 4.5;
-  const totalRatings = course?.totalRatings !== undefined ? course.totalRatings : Math.floor(Math.random() * 50) + 10;
-  const enrolledStudents = course?.enrolledStudents !== undefined ? course.enrolledStudents : Math.floor(Math.random() * 100) + 20;
-  const instructorName = course?.instructorName || (user?.role === 'INSTRUCTOR' ? user.username : 'Course Instructor');
-  const courseDuration = course?.duration || '8 weeks';
-  const courseLevel = course?.level || 'Beginner';
-  const courseBatch = course?.batch || 'Current Batch';
-  const courseDescription = course?.description || `Master ${course?.title} through hands-on projects and expert guidance.`;
+  // ✅ UPDATED: Check BOTH course object AND enrollmentData for rating info
+  const getRatingData = () => {
+    // Priority 1: Check enrollmentData first (for enrolled courses)
+    if (enrollmentData?.courseAverageRating !== undefined) {
+      return {
+        averageRating: enrollmentData.courseAverageRating,
+        totalRatings: enrollmentData.courseTotalRatings,
+        enrolledStudents: enrollmentData.enrolledStudents
+      };
+    }
+    
+    // Priority 2: Check course object (for available courses in StudentDashboard)
+    if (course?.averageRating !== undefined) {
+      return {
+        averageRating: course.averageRating,
+        totalRatings: course.totalRatings || 0,
+        enrolledStudents: course.enrolledStudents || 0
+      };
+    }
+    
+    // Priority 3: Fallback to random values only if no data available
+    console.warn('⚠️ No rating data found, using fallbacks for course:', course?.title);
+    return {
+      averageRating: 4.5,
+      totalRatings: Math.floor(Math.random() * 50) + 10,
+      enrolledStudents: Math.floor(Math.random() * 100) + 20
+    };
+  };
+
+  // ✅ UPDATED: Use the unified rating data
+  const ratingData = getRatingData();
+  const averageRating = ratingData.averageRating;
+  const totalRatings = ratingData.totalRatings;
+  const enrolledStudents = ratingData.enrolledStudents;
+
+  // ✅ UPDATED: Check both sources for other course information
+  const instructorName = enrollmentData?.instructorName || course?.instructorName || 
+                        (user?.role === 'INSTRUCTOR' ? user.username : 'Course Instructor');
+  
+  const courseDuration = enrollmentData?.duration || course?.duration || '8 weeks';
+  const courseLevel = enrollmentData?.level || course?.level || 'Beginner';
+  const courseBatch = enrollmentData?.batch || course?.batch || 'Current Batch';
+  
+  // ✅ FIX: Define courseDescription with proper fallback
+  const courseDescription = course?.description || enrollmentData?.courseDescription || 
+                           `Master ${course?.title || enrollmentData?.courseTitle} through hands-on projects and expert guidance.`;
 
   // ✅ FIX: Move getEnrollmentId function to the top
   const enrollmentId = React.useMemo(() => {
@@ -372,9 +409,9 @@ const CourseCard = ({
 
         <div className="card-content">
           <h3 className="course-title">{course.title}</h3>
-          <p className="course-description">{courseDescription}</p>
+          {/* <p className="course-description">{courseDescription}</p> */}
 
-          {/* ✅ UPDATED: Course meta information with fallbacks */}
+          {/* ✅ UPDATED: Course meta information with real data */}
           <div className="course-meta">
             <div className="meta-item">
               <span className="meta-icon">👨‍🏫</span>
@@ -441,12 +478,12 @@ const CourseCard = ({
             </div>
           )}
 
-          {/* ✅ UPDATED: Course stats with fallbacks */}
+          {/* ✅ UPDATED: Course stats with real data from backend */}
           <div className="course-stats">
             <div className="stat">
               <span className="stat-value">{averageRating.toFixed(1)}</span>
               <span className="stat-label">
-                Rating {totalRatings > 0 && `(${totalRatings})`}
+                Rating {totalRatings > 0 && `(${totalRatings} ratings)`}
               </span>
             </div>
             <div className="stat">

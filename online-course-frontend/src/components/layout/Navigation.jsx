@@ -1,7 +1,7 @@
 // components/layout/Navigation.jsx
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import './Navigation.css';
 
 const Navigation = () => {
@@ -15,10 +15,10 @@ const Navigation = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/profile'); // Simply navigate to profile page
+    navigate('/profile');
   };
 
-  // Role-specific menu items
+  // Role-specific menu items - UPDATED TO MATCH ACTUAL ROUTES
   const roleMenuItems = [
     // For STUDENTS: Show "My Enrollments"
     ...(user?.role === 'STUDENT' ? [
@@ -31,10 +31,10 @@ const Navigation = () => {
     ] : [])
   ];
 
-  // Base menu items
+  // Base menu items - REMOVED PROFILE FROM HERE
   const baseMenuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/profile', label: 'Profile', icon: '👤' } // Profile in menu
+    { path: '/dashboard', label: 'Dashboard', icon: '🏠' }
+    // Profile removed - using the clickable profile section above instead
   ];
 
   // Combine all menu items
@@ -65,7 +65,7 @@ const Navigation = () => {
       </div>
 
       <div className="sidebar-header">
-        <h2 className="sidebar-title">Quantum Learn</h2>
+        <h2 className="sidebar-title">LETS's Learn</h2>
       </div>
 
       <nav className="sidebar-nav">

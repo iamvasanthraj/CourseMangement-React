@@ -12,7 +12,8 @@ const MyEnrollments = () => {
     handleRate,
     user,
     handleStartTest,
-    showMessage
+    showMessage,
+    handleViewCertificate
   } = useDashboard();
 
   return (
@@ -29,6 +30,7 @@ const MyEnrollments = () => {
         onRate={handleRate}
         user={user}
         onStartTest={handleStartTest}
+        onViewCertificate={handleViewCertificate}
         showMessage={showMessage}
       />
     </div>
