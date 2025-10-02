@@ -1,11 +1,13 @@
 package com.onlinecourses.OnlineCourseSystem.controller;
 
+import com.onlinecourses.OnlineCourseSystem.dto.ChangePasswordRequest;
+import com.onlinecourses.OnlineCourseSystem.dto.UpdateProfileRequest;
 import com.onlinecourses.OnlineCourseSystem.entity.User;
-import com.onlinecourses.OnlineCourseSystem.entity.UserRole; // Import UserRole
 import com.onlinecourses.OnlineCourseSystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -52,35 +54,80 @@ public class UserController {
         }
     }
 
-    // Update user
+    // ✅ UPDATE: Enhanced update user endpoint with DTO
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateProfileRequest updateRequest) {
         try {
             Optional<User> userOptional = userService.findById(id);
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
                 
                 // Update fields if provided
-                if (userDetails.getName() != null) {
-                    user.setName(userDetails.getName());
+                if (updateRequest.getName() != null && !updateRequest.getName().trim().isEmpty()) {
+                    user.setName(updateRequest.getName());
                 }
-                if (userDetails.getEmail() != null) {
-                    user.setEmail(userDetails.getEmail());
+                if (updateRequest.getEmail() != null && !updateRequest.getEmail().trim().isEmpty()) {
+                    // Check if email is already taken by another user
+                    Optional<User> existingUser = userService.findByEmail(updateRequest.getEmail());
+                    if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
+                        return ResponseEntity.badRequest().body("{\"message\": \"Email is already taken\"}");
+                    }
+                    user.setEmail(updateRequest.getEmail());
                 }
-                if (userDetails.getPassword() != null) {
-                    user.setPassword(userDetails.getPassword());
-                }
-                if (userDetails.getRole() != null) {
-                    user.setRole(userDetails.getRole());
+                if (updateRequest.getAvatarIndex() != null) {
+                    user.setAvatarIndex(updateRequest.getAvatarIndex());
                 }
                 
-                User updatedUser = userService.createUser(user);
+                User updatedUser = userService.updateUser(user);
                 return ResponseEntity.ok(updatedUser);
             } else {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to update user: " + e.getMessage());
+            return ResponseEntity.badRequest().body("{\"message\": \"Failed to update user: " + e.getMessage() + "\"}");
+        }
+    }
+
+    // ✅ ADD: Change password endpoint (updated with userId from path)
+    @PostMapping("/{userId}/change-password")
+    public ResponseEntity<?> changePassword(@PathVariable Long userId, @RequestBody ChangePasswordRequest passwordRequest) {
+        try {
+            boolean success = userService.changePassword(
+                userId,
+                passwordRequest.getCurrentPassword(), 
+                passwordRequest.getNewPassword()
+            );
+            
+            if (success) {
+                return ResponseEntity.ok().body("{\"message\": \"Password changed successfully\", \"success\": true}");
+            } else {
+                return ResponseEntity.badRequest().body("{\"message\": \"Current password is incorrect\", \"success\": false}");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"message\": \"Failed to change password: " + e.getMessage() + "\", \"success\": false}");
+        }
+    }
+
+    // ✅ ADD: Update avatar only endpoint
+    @PatchMapping("/{id}/avatar")
+    public ResponseEntity<?> updateAvatar(@PathVariable Long id, @RequestBody UpdateProfileRequest updateRequest) {
+        try {
+            Optional<User> userOptional = userService.findById(id);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                
+                if (updateRequest.getAvatarIndex() != null) {
+                    user.setAvatarIndex(updateRequest.getAvatarIndex());
+                    User updatedUser = userService.updateUser(user);
+                    return ResponseEntity.ok(updatedUser);
+                } else {
+                    return ResponseEntity.badRequest().body("{\"message\": \"Avatar index is required\"}");
+                }
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"message\": \"Failed to update avatar: " + e.getMessage() + "\"}");
         }
     }
 
@@ -96,7 +143,7 @@ public class UserController {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to delete user: " + e.getMessage());
+            return ResponseEntity.badRequest().body("{\"message\": \"Failed to delete user: " + e.getMessage() + "\"}");
         }
     }
 
@@ -104,10 +151,7 @@ public class UserController {
     @GetMapping("/role/{role}")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable String role) {
         try {
-            List<User> users = userService.getAllUsers()
-                .stream()
-                .filter(user -> user.getRole().name().equalsIgnoreCase(role))
-                .toList();
+            List<User> users = userService.getUsersByRole(role);
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

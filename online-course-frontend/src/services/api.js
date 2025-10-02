@@ -102,10 +102,15 @@ export const usersAPI = {
     return apiCall(`/users/email/${email}`);
   },
 
+  // ✅ UPDATED: Fixed update method to match backend DTO
   update: async (userId, userData) => {
     return apiCall(`/users/${userId}`, {
       method: 'PUT',
-      body: JSON.stringify(userData),
+      body: JSON.stringify({
+        name: userData.username, // Map to 'name' field in backend
+        email: userData.email,
+        avatarIndex: userData.avatar
+      }),
     });
   },
 
@@ -122,6 +127,29 @@ export const usersAPI = {
   checkEmail: async (email) => {
     return apiCall(`/users/check-email/${email}`);
   },
+
+  // ✅ UPDATED: Fixed change password method to match backend
+  changePassword: async (userId, passwordData) => {
+    console.log('🔐 Changing password via API:', { userId, passwordData });
+    return apiCall(`/users/${userId}/change-password`, {
+      method: 'POST',
+      body: JSON.stringify({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      }),
+    });
+  },
+
+  // ✅ ADD: Update avatar only endpoint
+  updateAvatar: async (userId, avatarIndex) => {
+    console.log('🖼️ Updating avatar via API:', { userId, avatarIndex });
+    return apiCall(`/users/${userId}/avatar`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        avatarIndex: avatarIndex
+      }),
+    });
+  }
 };
 
 // ==================== COURSES API ====================

@@ -13,7 +13,10 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     
+    // ✅ REMOVED: PasswordEncoder dependency
+    
     public User createUser(User user) {
+        // Store password as plain text (for prototype only)
         return userRepository.save(user);
     }
     
@@ -42,5 +45,32 @@ public class UserService {
         return userRepository.findAll().stream()
             .filter(user -> user.getRole().name().equalsIgnoreCase(role))
             .toList();
+    }
+    
+    // ✅ ADD: Update user method
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
+    
+    // ✅ ADD: Change password method (plain text for prototype)
+    public boolean changePassword(Long userId, String currentPassword, String newPassword) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            
+            // Compare plain text passwords (for prototype only)
+            if (currentPassword.equals(user.getPassword())) {
+                // Store new password as plain text (for prototype only)
+                user.setPassword(newPassword);
+                userRepository.save(user);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // ✅ ADD: Simple update method
+    public User saveUser(User user) {
+        return userRepository.save(user);
     }
 }

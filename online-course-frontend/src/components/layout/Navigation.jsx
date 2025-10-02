@@ -13,7 +13,53 @@ import {
   X,
   AlertTriangle
 } from "lucide-react";
+import {
+  User as UserIcon,
+  UserCircle,
+  UserCheck,
+  UserCog,
+  UserPlus,
+  UserX,
+  GraduationCap as GradCap,
+  BookOpen as BookIcon,
+  Shield,
+  Crown,
+  Star,
+  Zap,
+  Bot,
+  Ghost,
+  Cat,
+  Dog,
+  Rabbit,
+  Bird,
+  Palette,
+  Music
+} from 'lucide-react';
 import "./Navigation.css";
+
+// Default avatars with Lucide icons - same as ProfilePage
+const DEFAULT_AVATARS = [
+  { icon: UserIcon, color: '#3B82F6', name: 'Basic User' },
+  { icon: UserCircle, color: '#10B981', name: 'Circle User' },
+  { icon: UserCheck, color: '#8B5CF6', name: 'Verified User' },
+  { icon: UserCog, color: '#F59E0B', name: 'Admin User' },
+  { icon: UserPlus, color: '#EC4899', name: 'New User' },
+  { icon: UserX, color: '#EF4444', name: 'Limited User' },
+  { icon: GradCap, color: '#06B6D4', name: 'Student' },
+  { icon: BookIcon, color: '#84CC16', name: 'Scholar' },
+  { icon: Shield, color: '#6366F1', name: 'Protector' },
+  { icon: Crown, color: '#F59E0B', name: 'VIP' },
+  { icon: Star, color: '#EAB308', name: 'Star' },
+  { icon: Zap, color: '#F97316', name: 'Energy' },
+  { icon: Bot, color: '#6B7280', name: 'Bot' },
+  { icon: Ghost, color: '#8B5CF6', name: 'Ghost' },
+  { icon: Cat, color: '#F59E0B', name: 'Cat' },
+  { icon: Dog, color: '#DC2626', name: 'Dog' },
+  { icon: Rabbit, color: '#EC4899', name: 'Rabbit' },
+  { icon: Bird, color: '#10B981', name: 'Bird' },
+  { icon: Palette, color: '#8B5CF6', name: 'Artist' },
+  { icon: Music, color: '#EC4899', name: 'Musician' }
+];
 
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -47,6 +93,15 @@ const Navigation = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Get current avatar data
+  const getCurrentAvatar = () => {
+    const avatarIndex = user?.avatar !== undefined ? user.avatar : 0;
+    return DEFAULT_AVATARS[avatarIndex] || DEFAULT_AVATARS[0];
+  };
+
+  const currentAvatar = getCurrentAvatar();
+  const AvatarIcon = currentAvatar.icon;
+
   return (
     <>
       <aside className={`quantum-sidebar ${collapsed ? "collapsed" : ""}`}>
@@ -69,8 +124,11 @@ const Navigation = () => {
           onClick={handleProfileClick}
           title={`${user?.username} • ${user?.role}`}
         >
-          <div className="profile-avatar-large">
-            {user?.username?.charAt(0)?.toUpperCase() || "U"}
+          <div 
+            className="profile-avatar-large"
+            style={{ backgroundColor: currentAvatar.color }}
+          >
+            <AvatarIcon size={24} color="white" />
           </div>
           {!collapsed && (
             <div className="profile-info-compact">
@@ -145,8 +203,11 @@ const Navigation = () => {
               
               {/* User Info Card */}
               <div className="user-info-card">
-                <div className="user-avatar-small">
-                  {user?.username?.charAt(0)?.toUpperCase() || "U"}
+                <div 
+                  className="user-avatar-small"
+                  style={{ backgroundColor: currentAvatar.color }}
+                >
+                  <AvatarIcon size={20} color="white" />
                 </div>
                 <div className="user-details">
                   <div className="user-name">{user?.username || "User"}</div>

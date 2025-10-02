@@ -26,9 +26,16 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // ✅ ADD: Avatar field - store the index (0-19) for default avatars
+    @Column(name = "avatar_index")
+    private Integer avatarIndex = 0; // Default to first avatar
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (avatarIndex == null) {
+            avatarIndex = 0; // Ensure default value
+        }
     }
 
     // Constructors, Getters and Setters
@@ -38,6 +45,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.avatarIndex = 0; // Default avatar
     }
 
     public Long getId() { return id; }
@@ -51,4 +59,10 @@ public class User {
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    
+    // ✅ ADD: Avatar getter and setter
+    public Integer getAvatarIndex() { return avatarIndex; }
+    public void setAvatarIndex(Integer avatarIndex) { 
+        this.avatarIndex = avatarIndex != null ? avatarIndex : 0;
+    }
 }
