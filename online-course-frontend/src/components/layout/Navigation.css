@@ -1,4 +1,6 @@
-/* Navigation.css */
+/* ================================
+   Navigation Sidebar (Enhanced)
+   ================================ */
 .quantum-sidebar {
   width: 280px;
   height: 100vh;
@@ -11,38 +13,98 @@
   top: 0;
   z-index: 1000;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow: hidden; /* Prevent main sidebar from scrolling */
 }
 
-/* Profile Section at Top */
+/* Collapsed state */
+.quantum-sidebar.collapsed {
+  width: 80px;
+}
+
+/* ================================
+   App Title at Top
+   ================================ */
+.sidebar-header {
+  padding: 24px 20px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.sidebar-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-tagline {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Hide title when collapsed */
+.quantum-sidebar.collapsed .sidebar-header {
+  display: none;
+}
+
+/* ================================
+   Collapse Button
+   ================================ */
+.collapse-btn {
+  position: absolute;
+  top: 24px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: 2px solid #1e293b;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.collapse-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ================================
+   Profile Section (Vertical Layout)
+   ================================ */
 .sidebar-profile-section {
-  padding: 25px 20px;
+  padding: 20px;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.sidebar-profile-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.sidebar-profile-section:hover::before {
-  left: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  flex-shrink: 0; /* Prevent profile from shrinking */
 }
 
 .sidebar-profile-section:hover {
   background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-1px);
 }
 
 .profile-avatar-large {
@@ -53,87 +115,85 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  margin: 0 auto 15px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.sidebar-profile-section:hover .profile-avatar-large {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .profile-info-compact {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .profile-name {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  margin: 0 0 8px 0;
-  color: white;
+  text-align: center;
 }
 
+/* Role badge */
 .profile-role-badge {
-  display: flex;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Email */
+.profile-email {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Hide profile info when collapsed */
+.quantum-sidebar.collapsed .profile-info-compact {
+  display: none;
+}
+
+.quantum-sidebar.collapsed .sidebar-profile-section {
+  padding: 15px 10px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 auto 8px;
-  max-width: fit-content;
 }
 
-.role-icon {
-  font-size: 0.9rem;
+.quantum-sidebar.collapsed .profile-avatar-large {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
 }
 
-.profile-email {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  margin: 0;
-  word-break: break-all;
-}
-
-.profile-edit-hint {
-  margin-top: 10px;
-  font-size: 0.7rem;
-  opacity: 0.6;
-  text-align: center;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.9; }
-}
-
-/* Sidebar Header */
-.sidebar-header {
-  padding: 20px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  letter-spacing: -0.5px;
-}
-
-/* Navigation */
+/* ================================
+   Navigation Menu (SCROLLABLE AREA)
+   ================================ */
 .sidebar-nav {
-  flex: 1;
-  padding: 20px 0;
-  overflow-y: auto;
+  flex: 1; /* Take remaining space */
+  padding: 15px 0;
+  overflow-y: auto; /* Make only this area scrollable */
+  overflow-x: hidden;
+  min-height: 0; /* Important for flex child scrolling */
 }
 
 .nav-menu {
@@ -143,7 +203,7 @@
 }
 
 .nav-item {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .nav-link {
@@ -151,7 +211,7 @@
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.8);
-  padding: 15px 25px;
+  padding: 12px 20px;
   text-align: left;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -164,15 +224,16 @@
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
   color: white;
-  padding-left: 30px;
+  padding-left: 28px;
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
   color: white;
   border-right: 3px solid #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .nav-link.active::before {
@@ -185,14 +246,25 @@
   background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
+.nav-link.active .nav-icon {
+  transform: scale(1.1);
+  color: #667eea;
+}
+
 .nav-icon {
   font-size: 1.1rem;
   width: 20px;
   text-align: center;
+  transition: transform 0.3s ease;
 }
 
 .nav-label {
   flex: 1;
+}
+
+/* Hide nav labels when collapsed */
+.quantum-sidebar.collapsed .nav-label {
+  display: none;
 }
 
 .active-indicator {
@@ -206,10 +278,44 @@
   50% { transform: scale(1.2); }
 }
 
-/* Sidebar Footer */
+/* Tooltip for collapsed state */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1e293b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1002;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quantum-sidebar.collapsed .nav-link:hover::after {
+  opacity: 1;
+  visibility: visible;
+  left: calc(100% + 10px);
+}
+
+/* ================================
+   Footer / Logout
+   ================================ */
 .sidebar-footer {
-  padding: 20px;
+  padding: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 .logout-btn {
@@ -217,28 +323,242 @@
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: rgba(255, 255, 255, 0.8);
-  padding: 12px 20px;
+  padding: 12px 16px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
+  justify-content: center;
 }
 
 .logout-btn:hover {
   background: rgba(239, 68, 68, 0.2);
   color: white;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
-.logout-icon {
-  font-size: 1rem;
+/* ================================
+   Enhanced Logout Modal (FIXED - Not scrollable)
+   ================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+  overflow: hidden; /* Prevent overlay from scrolling */
 }
 
-/* Scrollbar Styling */
+.logout-modal {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 90vh; /* Limit height */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden; /* Contain modal content */
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.modal-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.modal-warning-icon {
+  color: #ef4444;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Modal Content (Scrollable if needed) */
+.modal-content {
+  padding: 20px 24px;
+  flex: 1;
+  overflow-y: auto; /* Make content scrollable if too tall */
+  min-height: 0; /* Important for flex child scrolling */
+}
+
+.modal-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.modal-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+/* User Info Card */
+.user-info-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.user-avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+
+.user-role-tag {
+  font-size: 0.7rem;
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  padding: 2px 8px;
+  border-radius: 8px;
+  display: inline-block;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 24px 24px;
+  flex-shrink: 0; /* Prevent actions from shrinking */
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.modal-btn-confirm {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.modal-btn-confirm:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* ================================
+   Scrollbar Styling
+   ================================ */
 .sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
@@ -256,53 +576,60 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Responsive Design */
+.modal-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ================================
+   Mobile Support
+   ================================ */
 @media (max-width: 768px) {
   .quantum-sidebar {
     width: 100%;
-    height: auto;
-    position: relative;
+    height: 100vh;
+    position: fixed;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
   }
-
+  
   .quantum-sidebar.mobile-open {
     transform: translateX(0);
   }
-
-  .sidebar-profile-section {
-    padding: 20px 15px;
+  
+  .logout-modal {
+    margin: 20px;
+    width: calc(100% - 40px);
+    max-height: calc(100vh - 40px);
   }
-
-  .profile-avatar-large {
-    width: 50px;
-    height: 50px;
-    font-size: 1.2rem;
+  
+  .modal-actions {
+    flex-direction: column;
   }
-
-  .profile-name {
-    font-size: 1.1rem;
-  }
-}
-
-/* Mobile menu toggle button (add this if you need mobile support) */
-.mobile-menu-toggle {
-  display: none;
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 1001;
-  background: #667eea;
-  border: none;
-  color: white;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.2rem;
-}
-
-@media (max-width: 768px) {
+  
   .mobile-menu-toggle {
     display: block;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    background: #667eea;
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
   }
 }

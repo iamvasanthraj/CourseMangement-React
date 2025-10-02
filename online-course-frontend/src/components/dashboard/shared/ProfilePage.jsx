@@ -89,7 +89,6 @@ const ProfilePage = () => {
             <div className="profile-avatar">
               {user?.username?.charAt(0)?.toUpperCase() || 'U'}
             </div>
-            <div className="avatar-badge">{user?.role}</div>
           </div>
           <div className="profile-info">
             <h1 className="profile-name">

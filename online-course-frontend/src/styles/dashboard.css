@@ -116,12 +116,13 @@
 }
 
 .filter-label {
-  color: var(--text-accent) !important;
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
+  color: #ffffff !important; /* white text */
+  font-weight: 900; /* very bold for visibility */
+  font-size: 2rem; /* big size */
   white-space: nowrap;
-  text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+   /* text-shadow: 0 0 15px rgba(194, 197, 197, 0.8);  */
 }
+
 
 .results-count {
   color: var(--text-accent);

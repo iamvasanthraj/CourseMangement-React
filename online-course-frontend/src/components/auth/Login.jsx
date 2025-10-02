@@ -76,7 +76,7 @@ const handleSubmit = async (e) => {
               type="text"
               name="username"
               className="auth-input"
-              placeholder="Enter your username"
+              placeholder="Enter your email"
               value={formData.username}
               onChange={handleChange}
               required

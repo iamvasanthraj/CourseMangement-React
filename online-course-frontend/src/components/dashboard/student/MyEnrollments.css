@@ -1,46 +1,128 @@
-/* 
+/* MyEnrollments.css */
 
+/* --- Page Container --- */
 .my-enrollments-page {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
+  padding: 15px; /* overall page padding */
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 0px;
-  padding: 10px;
+/* --- Page Header --- */
+.my-enrollments-page .page-header {
+  padding: 10px 15px; /* reduced padding */
+  margin-bottom: 1px; /* smaller gap below header */
+  border-bottom: 1px solid var(--border-light);
 }
 
-.page-title {
-  font-size: 2.5rem;
+.my-enrollments-page .page-title {
+  font-size: 2rem; /* slightly smaller */
+  margin: 0 0 5px 0; /* less bottom margin */
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 10px;
+  color: var(--text-primary);
 }
 
-.page-subtitle {
-  font-size: 1.1rem;
-  color: #6b7280;
-  margin-bottom: 20px;
+.my-enrollments-page .page-subtitle {
+  font-size: 1rem; /* smaller subtitle */
+  margin: 0; /* remove extra margin */
+  line-height: 1.3; /* tighter spacing */
+  color: var(--text-secondary);
 }
 
+/* --- Enrollments Section --- */
+.my-enrollments-page .enrollments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* smaller gap between enrollment cards */
+}
 
+/* --- Enrollment Card --- */
+.enrollment-card {
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  padding: 12px 15px; /* reduced padding */
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* tighter content spacing */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.enrollment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Course Title --- */
+.enrollment-card .course-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* --- Course Meta (ratings, batch, etc.) --- */
+.enrollment-card .course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* --- Action Buttons --- */
+.enrollment-card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.enrollment-card .actions button {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.enrollment-card .actions button:hover {
+  background-color: var(--accent-hover);
+  color: #fff;
+}
+
+/* --- Ratings Stars --- */
+.enrollment-card .rating-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 1rem;
+  color: #ffd700; /* gold stars */
+}
+
+/* --- No Enrollments Message --- */
+.my-enrollments-page .no-enrollments {
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* --- Responsive --- */
 @media (max-width: 768px) {
   .my-enrollments-page {
-    padding: 15px;
+    padding: 10px;
   }
-  
+
+  .enrollment-card {
+    padding: 10px;
+  }
+
   .page-title {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
-  
+
   .page-subtitle {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 }
- */
