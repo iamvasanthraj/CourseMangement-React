@@ -1,8 +1,6 @@
 package com.onlinecourses.OnlineCourseSystem.controller;
 
-import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentRequest;
-import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentResponse;
-import com.onlinecourses.OnlineCourseSystem.dto.RatingRequest;
+import com.onlinecourses.OnlineCourseSystem.dto.*;
 import com.onlinecourses.OnlineCourseSystem.entity.Enrollment;
 import com.onlinecourses.OnlineCourseSystem.service.EnrollmentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +22,8 @@ public class EnrollmentController {
 
     @Autowired
     private EnrollmentService enrollmentService;
+
+    
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<?> getStudentEnrollments(@PathVariable Long studentId) {
@@ -103,17 +103,55 @@ public class EnrollmentController {
         }
     }
 
+    // ✅ UPDATED: Handle course completion with test results
     @PutMapping("/{enrollmentId}/complete")
-    public ResponseEntity<?> completeCourse(@PathVariable Long enrollmentId, @RequestBody RatingRequest ratingRequest) {
+    public ResponseEntity<?> completeCourse(@PathVariable Long enrollmentId, @RequestBody CourseCompletionRequest completionRequest) {
         try {
+            System.out.println("🎯 === COMPLETE COURSE REQUEST ===");
+            System.out.println("📥 Enrollment ID: " + enrollmentId);
+            System.out.println("📥 Completion Request: " + completionRequest);
+            
             Enrollment enrollment = enrollmentService.completeCourse(
+                enrollmentId, 
+                completionRequest
+            );
+            
+            System.out.println("✅ Course completion successful for enrollment: " + enrollmentId);
+            return ResponseEntity.ok(enrollment);
+            
+        } catch (Exception e) {
+            System.out.println("💥 Course completion failed: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to complete course: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    // ✅ ADD: Separate endpoint for just ratings (optional)
+    @PutMapping("/{enrollmentId}/rate")
+    public ResponseEntity<?> rateCourse(@PathVariable Long enrollmentId, @RequestBody RatingRequest ratingRequest) {
+        try {
+            System.out.println("⭐ === RATING COURSE ===");
+            System.out.println("📥 Enrollment ID: " + enrollmentId);
+            System.out.println("📥 Rating: " + ratingRequest.getRating());
+            System.out.println("📥 Feedback: " + ratingRequest.getFeedback());
+            
+            Enrollment enrollment = enrollmentService.rateCourse(
                 enrollmentId, 
                 ratingRequest.getRating(), 
                 ratingRequest.getFeedback()
             );
+            
+            System.out.println("✅ Course rated successfully");
             return ResponseEntity.ok(enrollment);
+            
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to complete course: " + e.getMessage());
+            System.out.println("💥 Course rating failed: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to rate course: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 }

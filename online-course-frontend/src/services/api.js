@@ -71,7 +71,7 @@ const apiCall = async (endpoint, options = {}) => {
   }
 };
 
-// Authentication API
+// ==================== AUTHENTICATION API ====================
 export const authAPI = {
   login: async (credentials) => {
     return apiCall('/auth/login', {
@@ -88,7 +88,7 @@ export const authAPI = {
   },
 };
 
-// Users API
+// ==================== USERS API ====================
 export const usersAPI = {
   getAll: async () => {
     return apiCall('/users');
@@ -124,8 +124,7 @@ export const usersAPI = {
   },
 };
 
-// Courses API
-// In your coursesAPI object, add this method:
+// ==================== COURSES API ====================
 export const coursesAPI = {
   getAll: async () => {
     const data = await apiCall('/courses');
@@ -195,7 +194,6 @@ export const coursesAPI = {
     }) : [];
   },
 
-  // ADD THIS METHOD:
   getById: async (courseId) => {
     const course = await apiCall(`/courses/${courseId}`);
     
@@ -268,10 +266,7 @@ export const coursesAPI = {
   },
 };
 
-// services/api.js - update getStudentEnrollments to handle nested data
-// services/api.js - Complete enrollmentAPI with all methods
-// services/api.js - update getStudentEnrollments to handle new fields
-
+// ==================== ENROLLMENT API ====================
 export const enrollmentAPI = {
   getStudentEnrollments: async (studentId) => {
     console.log(`🎓 Fetching enrollments for student: ${studentId}`);
@@ -297,13 +292,14 @@ export const enrollmentAPI = {
           testScore: item.testScore || 0,
           totalQuestions: item.totalQuestions || 10,
           percentage: item.percentage || 0,
+          passed: item.passed || false,
           
           // Rating fields
           rating: item.rating, // User's personal rating
           feedback: item.feedback,
           
           // ✅ ADD: Course rating data
-          courseAverageRating: item.courseAverageRating || 4.5, // Fallback if not provided
+          courseAverageRating: item.courseAverageRating || 4.5,
           courseTotalRatings: item.courseTotalRatings || Math.floor(Math.random() * 50) + 10,
           enrolledStudents: item.enrolledStudents || Math.floor(Math.random() * 100) + 20,
           instructorName: item.instructorName || 'Course Instructor',
@@ -322,7 +318,6 @@ export const enrollmentAPI = {
     }
   },
 
-  // ... rest of the methods remain the same ...
   getCourseEnrollments: async (courseId) => {
     return apiCall(`/enrollments/course/${courseId}`);
   },
@@ -347,20 +342,36 @@ export const enrollmentAPI = {
     });
   },
 
-  completeCourse: async (enrollmentId, ratingData) => {
-    console.log('🎓 Completing course with test scores:', { 
+  // ✅ UPDATED: Enhanced completeCourse to handle both test results and course completion
+  completeCourse: async (enrollmentId, completionData) => {
+    console.log('🎓 Completing course with data:', { 
       enrollmentId, 
-      ratingData
+      completionData 
     });
     
     try {
+      // Prepare the update payload
+      const updatePayload = {
+        completed: completionData.completed !== undefined ? completionData.completed : true,
+        ...(completionData.completionDate && { completionDate: completionData.completionDate }),
+        ...(completionData.testScore !== undefined && { testScore: completionData.testScore }),
+        ...(completionData.totalQuestions !== undefined && { totalQuestions: completionData.totalQuestions }),
+        ...(completionData.percentage !== undefined && { percentage: completionData.percentage }),
+        ...(completionData.passed !== undefined && { passed: completionData.passed }),
+        ...(completionData.rating !== undefined && { rating: completionData.rating }),
+        ...(completionData.feedback && { feedback: completionData.feedback })
+      };
+      
+      console.log('📤 Sending enrollment update:', updatePayload);
+      
       const result = await apiCall(`/enrollments/${enrollmentId}/complete`, {
         method: 'PUT',
-        body: JSON.stringify(ratingData),
+        body: JSON.stringify(updatePayload),
       });
       
-      console.log('✅ completeCourse API Success - Response:', result);
+      console.log('✅ Enrollment updated successfully:', result);
       return result;
+      
     } catch (error) {
       console.error('❌ completeCourse API Error:', error);
       throw error;
@@ -368,7 +379,7 @@ export const enrollmentAPI = {
   },
 };
 
-// Add this to your services/api.js
+// ==================== RATING API ====================
 export const ratingAPI = {
   rate: async (ratingData) => {
     return apiCall('/ratings', {
@@ -386,46 +397,117 @@ export const ratingAPI = {
   },
 };
 
-// Test API (Mock for now)
-export const testAPI = {
-  getQuestions: async (courseId) => {
-    // Mock questions - replace with actual API when available
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: 1,
-            question: "What is the main concept of this course?",
-            options: ["Option A", "Option B", "Option C", "Option D"],
-            correctAnswer: 0
-          },
-          {
-            id: 2,
-            question: "Which technology is primarily used?",
-            options: ["React", "Vue", "Angular", "Svelte"],
-            correctAnswer: 0
-          }
-        ]);
-      }, 500);
-    });
+// ==================== TEST RESULTS API ====================
+export const testResultsAPI = {
+  // Save test results to MySQL
+  saveTestResult: async (testData) => {
+    console.log('💾 Saving test result to MySQL:', testData);
+    try {
+      const result = await apiCall('/test-results/save', {
+        method: 'POST',
+        body: JSON.stringify(testData),
+      });
+      console.log('✅ Test result saved to MySQL:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to save test result to MySQL:', error);
+      throw error;
+    }
   },
 
-  submitTest: async (courseId, answers) => {
-    // Mock submission - replace with actual API when available
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          score: 85,
-          totalQuestions: 2,
-          passed: true,
-          correctAnswers: 2
-        });
-      }, 1000);
+  // Get test results by enrollment ID
+  getTestResultByEnrollment: async (enrollmentId) => {
+    console.log('📊 Fetching test result for enrollment:', enrollmentId);
+    try {
+      const result = await apiCall(`/test-results/enrollment/${enrollmentId}`);
+      console.log('✅ Test result fetched:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch test result:', error);
+      // Return null instead of throwing to allow graceful handling
+      return { success: false, testResult: null };
+    }
+  },
+
+  // Get all test results for a student
+  getTestResultsByStudent: async (studentId) => {
+    console.log('📊 Fetching all test results for student:', studentId);
+    return apiCall(`/test-results/student/${studentId}`);
+  },
+
+  // Check if student passed a course
+  checkCoursePassed: async (courseId, studentId) => {
+    console.log('✅ Checking if course passed:', { courseId, studentId });
+    return apiCall(`/test-results/check-passed/${courseId}/${studentId}`);
+  },
+
+  // ✅ ADD: Update test result
+  updateTestResult: async (testResultId, updateData) => {
+    console.log('🔄 Updating test result:', { testResultId, updateData });
+    return apiCall(`/test-results/${testResultId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
     });
+  }
+};
+
+// ==================== TEST API ====================
+export const testAPI = {
+  // Use your actual getRandomQuestions function instead of mock
+  getQuestions: async (courseId, count = 10) => {
+    console.log(`🎯 Getting ${count} random questions for course: ${courseId}`);
+    
+    try {
+      // Dynamic import to avoid circular dependencies
+      const { getRandomQuestions } = await import('../utils/questionUtils');
+      
+      const questions = getRandomQuestions(count);
+      console.log(`✅ Generated ${questions.length} random questions`);
+      return questions;
+    } catch (error) {
+      console.error('❌ Error generating random questions:', error);
+      
+      // Fallback to mock questions if import fails
+      return [
+        {
+          id: 1,
+          question: "What is the main concept of this course?",
+          options: ["Option A", "Option B", "Option C", "Option D"],
+          correctAnswer: 0
+        },
+        {
+          id: 2,
+          question: "Which technology is primarily used?",
+          options: ["React", "Vue", "Angular", "Svelte"],
+          correctAnswer: 0
+        }
+      ];
+    }
+  },
+
+  // Keep this for backward compatibility, but it's deprecated
+  submitTest: async (courseId, answers) => {
+    console.warn('⚠️ submitTest is deprecated - use testResultsAPI.saveTestResult instead');
+    
+    // Calculate score for mock response
+    const correctAnswers = Object.values(answers).filter((answer, index) => {
+      // This would need actual question data to calculate properly
+      return answer === 0; // Mock correct answer
+    }).length;
+    
+    const totalQuestions = Object.keys(answers).length;
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+    
+    return {
+      score: score,
+      totalQuestions: totalQuestions,
+      passed: score >= 60,
+      correctAnswers: correctAnswers
+    };
   },
 };
 
-// Certificate API
+// ==================== CERTIFICATE API ====================
 export const certificateAPI = {
   generate: async (certificateData) => {
     return apiCall('/certificates/generate', {
@@ -455,7 +537,7 @@ export const certificateAPI = {
   },
 };
 
-// Export all APIs
+// ==================== EXPORT ALL APIS ====================
 export default {
   auth: authAPI,
   users: usersAPI,
@@ -463,4 +545,6 @@ export default {
   enrollment: enrollmentAPI,
   test: testAPI,
   certificate: certificateAPI,
+  testResults: testResultsAPI,
+  rating: ratingAPI
 };

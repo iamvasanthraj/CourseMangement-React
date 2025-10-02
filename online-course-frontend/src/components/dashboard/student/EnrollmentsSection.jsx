@@ -8,6 +8,7 @@ const EnrollmentsSection = ({
   loading, 
   onUnenroll, 
   onRate, 
+  onCompleteCourse, // ✅ ADD: Missing prop for completing courses
   user, 
   onStartTest,
   onViewCertificate,
@@ -66,6 +67,32 @@ const EnrollmentsSection = ({
       console.error('Rating error:', error);
       if (showMessage) {
         showMessage('error', 'Failed to submit rating');
+      }
+    }
+  };
+
+  // ✅ ADD: Function to handle course completion with messaging
+  const handleCompleteCourseWithMessage = async (completionData) => {
+    try {
+      if (!onCompleteCourse) {
+        console.error('❌ onCompleteCourse function not provided');
+        return;
+      }
+
+      console.log('🎯 Marking course as completed:', completionData);
+      
+      await onCompleteCourse(completionData);
+      
+      if (showMessage) {
+        showMessage(
+          'success', 
+          `🎉 Course completed successfully! Certificate is now available.`
+        );
+      }
+    } catch (error) {
+      console.error('❌ Course completion error:', error);
+      if (showMessage) {
+        showMessage('error', 'Failed to update course completion status');
       }
     }
   };
@@ -149,7 +176,9 @@ const EnrollmentsSection = ({
             courseTitle: course.title,
             courseRating: course.averageRating,
             enrollmentRating: enrollment.courseAverageRating,
-            hasRating: enrollment.courseAverageRating > 0 || course.averageRating > 0
+            hasRating: enrollment.courseAverageRating > 0 || course.averageRating > 0,
+            enrollmentId: enrollmentId,
+            completed: enrollment.completed
           });
 
           return (
@@ -161,6 +190,7 @@ const EnrollmentsSection = ({
               onStartTest={onStartTest}
               onRate={handleRateWithMessage}  
               onUnenroll={handleUnenrollWithMessage}
+              onCompleteCourse={handleCompleteCourseWithMessage} // ✅ ADD: This was missing!
               onViewCertificate={handleViewCertificateWithMessage}
               enrollmentData={{
                 ...enrollment,

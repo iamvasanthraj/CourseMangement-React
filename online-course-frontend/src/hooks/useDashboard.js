@@ -1,7 +1,7 @@
 // hooks/useDashboard.js
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { coursesAPI, enrollmentAPI, testAPI, certificateAPI } from '../services/api';
+import { coursesAPI, enrollmentAPI, testAPI, certificateAPI, testResultsAPI } from '../services/api'; // ✅ ADD testResultsAPI
 
 export const useDashboard = () => {
   const { user } = useAuth();
@@ -10,7 +10,7 @@ export const useDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [enrollingCourseId, setEnrollingCourseId] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [certificateData, setCertificateData] = useState(null); // ✅ ADD: Certificate state
+  const [certificateData, setCertificateData] = useState(null);
   
   // State for new course creation
   const [newCourse, setNewCourse] = useState({
@@ -61,6 +61,151 @@ export const useDashboard = () => {
     await loadCourses();
   }, [loadCourses]);
 
+  // ✅ ADD: Function to mark course as completed
+  const handleCompleteCourse = useCallback(async (completionData) => {
+    try {
+      console.log('🎯 START: handleCompleteCourse', completionData);
+      
+      const { enrollmentId, courseId, completionDate } = completionData;
+      
+      if (!enrollmentId) {
+        throw new Error('Enrollment ID is required');
+      }
+
+      // Update enrollment via API to mark as completed
+      const updateData = {
+        completed: true,
+        completionDate: completionDate || new Date().toISOString()
+      };
+      
+      console.log('📤 API Payload for completeCourse:', updateData);
+      
+      const result = await enrollmentAPI.completeCourse(enrollmentId, updateData);
+      console.log('✅ API Response from completeCourse:', result);
+      
+      // Refresh enrollments to get updated data
+      await refreshEnrollments();
+      
+      console.log('✅ END: handleCompleteCourse - Success');
+      
+      return result;
+      
+    } catch (error) {
+      console.error('❌ ERROR: handleCompleteCourse failed:', error);
+      showMessage('error', 'Failed to mark course as completed: ' + error.message);
+      throw error;
+    }
+  }, [refreshEnrollments, showMessage]);
+
+  // ✅ UPDATED: Handle test completion with proper MySQL integration
+  const handleTestCompletion = async (testResults, courseId) => {
+    try {
+      console.log('🎯 START: handleTestCompletion', { 
+        testResults, 
+        courseId,
+        correctAnswers: testResults.correctAnswers,
+        totalQuestions: testResults.totalQuestions,
+        score: testResults.score,
+        passed: testResults.passed
+      });
+      
+      console.log('🔍 Current enrollments count:', enrollments.length);
+      
+      // Find the enrollment for this course
+      const enrollment = enrollments.find(e => e.courseId === courseId);
+      
+      console.log('🔍 Enrollment found for course:', enrollment);
+      
+      if (enrollment?.id || enrollment?.enrollmentId) {
+        const enrollmentIdToUse = enrollment.id || enrollment.enrollmentId;
+        
+        console.log('🔄 Processing test completion for enrollment:', enrollmentIdToUse);
+
+        // ✅ FIRST: Save test results to MySQL (if using testResultsAPI)
+        if (testResultsAPI && testResultsAPI.saveTestResult) {
+          try {
+            console.log('💾 Saving test results to MySQL...');
+            const testResultData = {
+              enrollmentId: enrollmentIdToUse,
+              courseId: courseId,
+              studentId: user?.userId,
+              testScore: testResults.correctAnswers,
+              totalQuestions: testResults.totalQuestions,
+              percentage: testResults.score,
+              passed: testResults.passed,
+              submittedAt: new Date().toISOString()
+            };
+            
+            const testSaveResult = await testResultsAPI.saveTestResult(testResultData);
+            console.log('✅ Test results saved to MySQL:', testSaveResult);
+          } catch (testError) {
+            console.error('❌ Failed to save test results to MySQL:', testError);
+            // Continue with enrollment update even if test save fails
+          }
+        }
+
+        // ✅ SECOND: Update enrollment with test scores
+        console.log('🔄 Updating enrollment with test scores...');
+        const updateData = {
+          testScore: testResults.correctAnswers,
+          totalQuestions: testResults.totalQuestions,
+          percentage: testResults.score,
+          passed: testResults.passed
+        };
+        
+        console.log('📤 API Payload for completeCourse:', updateData);
+        
+        const result = await enrollmentAPI.completeCourse(enrollmentIdToUse, updateData);
+        console.log('✅ API Response from completeCourse:', result);
+        
+        // ✅ THIRD: If test passed, automatically mark course as completed
+        if (testResults.passed && !enrollment.completed) {
+          console.log('🏆 Test passed - marking course as completed');
+          await handleCompleteCourse({
+            enrollmentId: enrollmentIdToUse,
+            courseId: courseId,
+            completionDate: new Date().toISOString()
+          });
+        } else {
+          // Just refresh enrollments if not completing
+          await refreshEnrollments();
+        }
+        
+        console.log('✅ END: handleTestCompletion - Success');
+        
+        // Show success message
+        const message = testResults.passed ? 
+          `🎉 Test passed! Score: ${testResults.correctAnswers}/${testResults.totalQuestions} (${testResults.score}%) - Course completed!` :
+          `📝 Test completed! Score: ${testResults.correctAnswers}/${testResults.totalQuestions} (${testResults.score}%) - Try again to pass.`;
+        
+        showMessage('success', message);
+        
+        return result;
+        
+      } else {
+        console.warn('❌ No enrollment found for course:', courseId);
+        showMessage('error', 'Could not find enrollment to update test results');
+        return null;
+      }
+      
+    } catch (error) {
+      console.error('❌ ERROR: handleTestCompletion failed:', error);
+      
+      // Show specific error message based on error type
+      if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
+        showMessage('error', 'Network error: Could not connect to server');
+      } else if (error.message.includes('404')) {
+        showMessage('error', 'Enrollment not found on server');
+      } else if (error.message.includes('500')) {
+        showMessage('error', 'Server error: Please try again later');
+      } else {
+        showMessage('error', 'Failed to save test results: ' + error.message);
+      }
+      
+      throw error;
+    }
+  };
+
   // ✅ ADD: Generate certificate data from test results
   const generateCertificateData = useCallback((testResults, courseData) => {
     if (!user || !testResults.passed) return null;
@@ -81,123 +226,26 @@ export const useDashboard = () => {
     };
   }, [user]);
 
-
-// Add this to your useDashboard.js to debug the enrollment data
-const debugEnrollments = () => {
-  console.log('🔍 DEBUG - Current Enrollments Data:', enrollments);
-  enrollments.forEach((enrollment, index) => {
-    console.log(`🔍 Enrollment ${index + 1}:`, {
-      id: enrollment.id,
-      enrollmentId: enrollment.enrollmentId,
-      courseTitle: enrollment.courseTitle,
-      completed: enrollment.completed,
-      testScore: enrollment.testScore,
-      totalQuestions: enrollment.totalQuestions,
-      percentage: enrollment.percentage,
-      hasTestData: enrollment.testScore !== undefined
-    });
-  });
-};
-
-// In hooks/useDashboard.js - update handleTestCompletion
-const handleTestCompletion = async (testResults, courseId) => {
-  try {
-    console.log('🎯 START: handleTestCompletion', { 
-      testResults, 
-      courseId,
-      correctAnswers: testResults.correctAnswers,
-      totalQuestions: testResults.totalQuestions,
-      score: testResults.score
-    });
-    
-    console.log('🔍 Current enrollments count:', enrollments.length);
-    console.log('🔍 All enrollments:', enrollments.map(e => ({
-      id: e.id,
-      enrollmentId: e.enrollmentId,
-      courseId: e.courseId,
-      courseTitle: e.courseTitle,
-      completed: e.completed
-    })));
-    
-    // Find the enrollment for this course
-    const enrollment = enrollments.find(e => e.courseId === courseId);
-    
-    console.log('🔍 Enrollment found for course:', enrollment);
-    
-    if (enrollment?.id || enrollment?.enrollmentId) {
-      const enrollmentIdToUse = enrollment.id || enrollment.enrollmentId;
-      
-      console.log('🔄 Updating enrollment with API call:', {
-        enrollmentId: enrollmentIdToUse,
-        testScore: testResults.correctAnswers,
-        totalQuestions: testResults.totalQuestions,
-        percentage: testResults.score,
-        passed: testResults.passed
+  // Add this to your useDashboard.js to debug the enrollment data
+  const debugEnrollments = () => {
+    console.log('🔍 DEBUG - Current Enrollments Data:', enrollments);
+    enrollments.forEach((enrollment, index) => {
+      console.log(`🔍 Enrollment ${index + 1}:`, {
+        id: enrollment.id,
+        enrollmentId: enrollment.enrollmentId,
+        courseTitle: enrollment.courseTitle,
+        completed: enrollment.completed,
+        testScore: enrollment.testScore,
+        totalQuestions: enrollment.totalQuestions,
+        percentage: enrollment.percentage,
+        hasTestData: enrollment.testScore !== undefined
       });
-
-      // Update enrollment via API
-      const updateData = {
-        completed: true,
-        testScore: testResults.correctAnswers,
-        totalQuestions: testResults.totalQuestions,
-        percentage: testResults.score,
-        completionDate: new Date().toISOString()
-      };
-      
-      console.log('📤 API Payload for completeCourse:', updateData);
-      
-      // Call the API
-      console.log('📞 Calling enrollmentAPI.completeCourse...');
-      const result = await enrollmentAPI.completeCourse(enrollmentIdToUse, updateData);
-      console.log('✅ API Response from completeCourse:', result);
-      
-      // Force refresh enrollments to get updated data
-      console.log('🔄 Refreshing enrollments after API call...');
-      await refreshEnrollments();
-      
-      console.log('✅ END: handleTestCompletion - Success');
-      
-      // Show success message
-      showMessage('success', `Test completed! Score: ${testResults.correctAnswers}/${testResults.totalQuestions} (${testResults.score}%)`);
-      
-      return result;
-      
-    } else {
-      console.warn('❌ No enrollment found for course:', courseId);
-      console.log('Available enrollments:', enrollments.map(e => ({
-        id: e.id,
-        enrollmentId: e.enrollmentId,
-        courseId: e.courseId,
-        courseTitle: e.courseTitle,
-        completed: e.completed
-      })));
-      
-      showMessage('error', 'Could not find enrollment to update test results');
-      return null;
-    }
-    
-  } catch (error) {
-    console.error('❌ ERROR: handleTestCompletion failed:', error);
-    
-    // Show specific error message based on error type
-    if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
-      showMessage('error', 'Network error: Could not connect to server');
-    } else if (error.message.includes('404')) {
-      showMessage('error', 'Enrollment not found on server');
-    } else if (error.message.includes('500')) {
-      showMessage('error', 'Server error: Please try again later');
-    } else {
-      showMessage('error', 'Failed to save test results: ' + error.message);
-    }
-    
-    throw error;
-  }
-};
-
+    });
+  };
 
   // ✅ ADD: View certificate for completed course
   const handleViewCertificate = useCallback((enrollmentId) => {
-    const enrollment = enrollments.find(e => e.id === enrollmentId);
+    const enrollment = enrollments.find(e => e.id === enrollmentId || e.enrollmentId === enrollmentId);
     if (!enrollment) {
       showMessage('error', 'Enrollment not found');
       return null;
@@ -208,19 +256,24 @@ const handleTestCompletion = async (testResults, courseId) => {
       return null;
     }
     
+    if (!enrollment.passed && enrollment.testScore !== undefined) {
+      showMessage('error', 'Test not passed - no certificate available');
+      return null;
+    }
+    
     const certificate = {
       studentName: user?.username || enrollment.studentName,
       studentId: user?.userId || enrollment.studentId,
       course: {
-        title: enrollment.course?.title || 'Course Title',
-        category: enrollment.course?.category || 'General',
-        instructorName: enrollment.course?.instructorName || 'Instructor'
+        title: enrollment.course?.title || enrollment.courseTitle || 'Course Title',
+        category: enrollment.course?.category || enrollment.courseCategory || 'General',
+        instructorName: enrollment.course?.instructorName || enrollment.instructorName || 'Instructor'
       },
       completionDate: enrollment.completionDate || new Date(),
       testScore: enrollment.testScore || 0,
       totalQuestions: enrollment.totalQuestions || 0,
       percentage: enrollment.percentage || 0,
-      passed: true
+      passed: enrollment.passed || true
     };
     
     setCertificateData(certificate);
@@ -454,7 +507,7 @@ const handleTestCompletion = async (testResults, courseId) => {
     message,
     enrollingCourseId,
     newCourse,
-    certificateData, // ✅ ADD: Export certificate data
+    certificateData,
     
     // Setters
     setNewCourse,
@@ -468,10 +521,12 @@ const handleTestCompletion = async (testResults, courseId) => {
     handleCreateCourse, 
     handleDeleteCourse, 
     handleUpdateCourse,
-    handleTestCompletion, // ✅ ADD: Test completion handler
-    handleViewCertificate, // ✅ ADD: View certificate handler
-    clearCertificateData, // ✅ ADD: Clear certificate handler
+    handleTestCompletion,
+    handleCompleteCourse, // ✅ ADD: Export the complete course function
+    handleViewCertificate,
+    clearCertificateData,
     refreshEnrollments,
-    refreshCourses
+    refreshCourses,
+    debugEnrollments // ✅ ADD: Export debug function
   };
 };

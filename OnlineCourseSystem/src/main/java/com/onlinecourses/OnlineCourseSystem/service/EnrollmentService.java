@@ -1,5 +1,6 @@
 package com.onlinecourses.OnlineCourseSystem.service;
 
+import com.onlinecourses.OnlineCourseSystem.dto.CourseCompletionRequest;
 import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentRequest;
 import com.onlinecourses.OnlineCourseSystem.dto.EnrollmentResponse;
 import com.onlinecourses.OnlineCourseSystem.dto.RatingRequest;
@@ -96,7 +97,7 @@ public class EnrollmentService {
         }
     }
     
-    // ✅ UPDATED: Enhanced conversion with course data - FIXED getUsername() issue
+    // ✅ UPDATED: Enhanced conversion with course data
     private EnrollmentResponse convertToResponse(Enrollment enrollment) {
         try {
             System.out.println("🔍 Converting enrollment: " + enrollment.getId());
@@ -147,28 +148,36 @@ public class EnrollmentService {
             
             System.out.println("🔍 Course Stats - Avg: " + courseAverageRating + ", Total: " + courseTotalRatings + ", Students: " + enrolledStudents);
             
-            // Create enhanced response with course stats
-            EnrollmentResponse response = new EnrollmentResponse(
-                enrollment.getId(),
-                studentId,
-                studentName,
-                courseId,
-                courseTitle,
-                courseCategory,
-                enrollment.getEnrollmentDate(),
-                enrollment.getCompletionDate(),
-                enrollment.isCompleted(),
-                enrollment.getRating(), // User's personal rating
-                enrollment.getFeedback(),
-                courseAverageRating,
-                courseTotalRatings,
-                enrolledStudents,
-                instructorName,
-                duration,
-                level,
-                batch,
-                price
-            );
+            // ✅ FIXED: Use setter methods instead of constructor
+            EnrollmentResponse response = new EnrollmentResponse();
+            response.setId(enrollment.getId());
+            response.setEnrollmentId(enrollment.getId());
+            response.setStudentId(studentId);
+            response.setStudentName(studentName);
+            response.setCourseId(courseId);
+            response.setCourseTitle(courseTitle);
+            response.setCourseCategory(courseCategory);
+            response.setEnrollmentDate(enrollment.getEnrollmentDate());
+            response.setCompletionDate(enrollment.getCompletionDate());
+            response.setCompleted(enrollment.isCompleted());
+            response.setRating(enrollment.getRating());
+            response.setFeedback(enrollment.getFeedback());
+            
+            // ✅ ADD: Test score fields
+            response.setTestScore(enrollment.getTestScore());
+            response.setTotalQuestions(enrollment.getTotalQuestions());
+            response.setPercentage(enrollment.getPercentage());
+            response.setPassed(enrollment.getPassed());
+            
+            // Course details
+            response.setCourseAverageRating(courseAverageRating);
+            response.setCourseTotalRatings(courseTotalRatings);
+            response.setEnrolledStudents(enrolledStudents);
+            response.setInstructorName(instructorName);
+            response.setDuration(duration);
+            response.setLevel(level);
+            response.setBatch(batch);
+            response.setPrice(price);
             
             System.out.println("✅ Created enhanced response: " + response);
             return response;
@@ -177,48 +186,148 @@ public class EnrollmentService {
             System.out.println("💥 Error converting enrollment " + enrollment.getId() + ": " + e.getMessage());
             e.printStackTrace();
             
-            // Return safe default with basic data
-            return new EnrollmentResponse(
-                enrollment.getId(),
-                null,
-                "Unknown Student",
-                null,
-                "Unknown Course",
-                "Unknown",
-                enrollment.getEnrollmentDate(),
-                null,
-                false,
-                null,
-                null,
-                0.0, 0, 0, "Unknown Instructor", "Unknown Duration", "Unknown Level", "Unknown Batch", 0.0
-            );
+            // Return safe default with basic data using setters
+            EnrollmentResponse response = new EnrollmentResponse();
+            response.setId(enrollment.getId());
+            response.setEnrollmentId(enrollment.getId());
+            response.setStudentName("Unknown Student");
+            response.setCourseTitle("Unknown Course");
+            response.setCourseCategory("Unknown");
+            response.setEnrollmentDate(enrollment.getEnrollmentDate());
+            response.setCompleted(false);
+            response.setCourseAverageRating(0.0);
+            response.setCourseTotalRatings(0);
+            response.setEnrolledStudents(0);
+            response.setInstructorName("Unknown Instructor");
+            response.setDuration("Unknown Duration");
+            response.setLevel("Unknown Level");
+            response.setBatch("Unknown Batch");
+            response.setPrice(0.0);
+            
+            return response;
         }
     }
-    
-    // ✅ UPDATED: Complete course with rating - also update course stats
-    public Enrollment completeCourse(Long enrollmentId, Integer rating, String feedback) {
-        try {
-            Optional<Enrollment> enrollmentOpt = enrollmentRepository.findById(enrollmentId);
-            if (enrollmentOpt.isPresent()) {
-                Enrollment enrollment = enrollmentOpt.get();
-                enrollment.setCompleted(true);
+
+    // ✅ FIXED: Complete course with proper auto-completion logic
+// In your EnrollmentService - UPDATE the completeCourse method with more detailed logging
+// ✅ FIXED: Backward compatibility method - DON'T auto-complete
+public Enrollment completeCourse(Long enrollmentId, CourseCompletionRequest completionRequest) {
+    try {
+        System.out.println("🎯 === SERVICE: COMPLETE COURSE ===");
+        System.out.println("📥 Enrollment ID: " + enrollmentId);
+        System.out.println("📥 Completion Request Details:");
+        System.out.println("   - Completed: " + completionRequest.getCompleted());
+        System.out.println("   - Passed: " + completionRequest.getPassed());
+        System.out.println("   - Test Score: " + completionRequest.getTestScore());
+        System.out.println("   - Total Questions: " + completionRequest.getTotalQuestions());
+        
+        // ✅ ADD: SAFETY CHECK - If test failed, NEVER mark as completed
+        if (completionRequest.getPassed() != null && !completionRequest.getPassed()) {
+            System.out.println("🛡️  Safety Check: Test failed - forcing completed to false");
+            completionRequest.setCompleted(false);
+        }
+        
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+            .orElseThrow(() -> new RuntimeException("Enrollment not found with id: " + enrollmentId));
+
+        // Debug current state
+        System.out.println("🔍 Current enrollment state:");
+        System.out.println("   - Completed: " + enrollment.isCompleted());
+        System.out.println("   - Passed: " + enrollment.getPassed());
+
+        // ✅ SIMPLIFIED: Only complete if test passed OR explicitly set to complete
+        if (completionRequest.getCompleted() != null) {
+            // Use explicit completion value
+            enrollment.setCompleted(completionRequest.getCompleted());
+            System.out.println("✅ Set completed (explicit): " + completionRequest.getCompleted());
+        } else if (completionRequest.getPassed() != null) {
+            // Auto-complete only if test passed
+            enrollment.setCompleted(completionRequest.getPassed());
+            System.out.println("✅ Auto-completing based on test result: " + completionRequest.getPassed());
+        }
+        // If no completion info, maintain current state
+
+        // Update completion date
+        if (enrollment.isCompleted()) {
+            if (completionRequest.getCompletionDate() != null) {
+                enrollment.setCompletionDate(completionRequest.getCompletionDate());
+            } else {
                 enrollment.setCompletionDate(LocalDateTime.now());
-                enrollment.setRating(rating);
-                enrollment.setFeedback(feedback);
-                
-                Enrollment updatedEnrollment = enrollmentRepository.save(enrollment);
-                
-                // ✅ ADD: Update course rating statistics
-                updateCourseRatingStats(enrollment.getCourse().getId());
-                
-                return updatedEnrollment;
             }
-            throw new RuntimeException("Enrollment not found");
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to complete course: " + e.getMessage());
+            System.out.println("✅ Set completion date: " + enrollment.getCompletionDate());
+        } else {
+            enrollment.setCompletionDate(null);
+            System.out.println("❌ Course not completed - clearing completion date");
         }
+
+        // Update test scores if provided
+        if (completionRequest.getTestScore() != null) {
+            enrollment.setTestScore(completionRequest.getTestScore());
+            System.out.println("✅ Test score: " + completionRequest.getTestScore());
+        }
+        
+        if (completionRequest.getTotalQuestions() != null) {
+            enrollment.setTotalQuestions(completionRequest.getTotalQuestions());
+            System.out.println("✅ Total questions: " + completionRequest.getTotalQuestions());
+        }
+        
+        if (completionRequest.getPercentage() != null) {
+            enrollment.setPercentage(completionRequest.getPercentage());
+            System.out.println("✅ Percentage: " + completionRequest.getPercentage());
+        }
+        
+        if (completionRequest.getPassed() != null) {
+            enrollment.setPassed(completionRequest.getPassed());
+            System.out.println("✅ Passed: " + completionRequest.getPassed());
+        }
+
+        // Update rating if provided
+        if (completionRequest.getRating() != null) {
+            enrollment.setRating(completionRequest.getRating());
+            System.out.println("✅ Rating: " + completionRequest.getRating());
+        }
+        
+        if (completionRequest.getFeedback() != null) {
+            enrollment.setFeedback(completionRequest.getFeedback());
+            System.out.println("✅ Feedback: " + completionRequest.getFeedback());
+        }
+
+        // Debug final state
+        System.out.println("🔍 Final enrollment state:");
+        System.out.println("   - Completed: " + enrollment.isCompleted());
+        System.out.println("   - Passed: " + enrollment.getPassed());
+        System.out.println("   - Test Score: " + enrollment.getTestScore() + "/" + enrollment.getTotalQuestions());
+
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+        System.out.println("💾 FINAL RESULT - Completed: " + savedEnrollment.isCompleted() + ", Passed: " + savedEnrollment.getPassed());
+        
+        return savedEnrollment;
+        
+    } catch (Exception e) {
+        System.out.println("💥 SERVICE ERROR: Failed to complete course - " + e.getMessage());
+        e.printStackTrace();
+        throw new RuntimeException("Failed to complete course: " + e.getMessage(), e);
     }
+}
+// ✅ ADD: Separate method for manual course completion (if needed)
+public Enrollment manuallyCompleteCourse(Long enrollmentId) {
+    CourseCompletionRequest request = new CourseCompletionRequest();
+    request.setCompleted(true);
+    request.setCompletionDate(LocalDateTime.now());
     
+    return completeCourse(enrollmentId, request);
+}
+
+    // Add this method for rating only
+    public Enrollment rateCourse(Long enrollmentId, Integer rating, String feedback) {
+        CourseCompletionRequest request = new CourseCompletionRequest();
+        request.setRating(rating);
+        request.setFeedback(feedback);
+        // Don't mark as completed if just rating
+        
+        return completeCourse(enrollmentId, request);
+    }
+
     // ✅ ADD: Method to update course rating statistics in Course entity
     private void updateCourseRatingStats(Long courseId) {
         try {
@@ -242,7 +351,7 @@ public class EnrollmentService {
         }
     }
     
-    // ... rest of the existing methods remain the same ...
+    // Enrollment methods
     public Enrollment enrollStudent(Long studentId, Long courseId) {
         try {
             Optional<User> student = userRepository.findById(studentId);
@@ -272,5 +381,17 @@ public class EnrollmentService {
         } catch (Exception e) {
             throw new RuntimeException("Unenrollment failed: " + e.getMessage());
         }
+    }
+
+    // ✅ ADD: Debug method to track completion logic - NOW USED
+    private void debugEnrollmentCompletion(Enrollment enrollment, CourseCompletionRequest request, String operation) {
+        System.out.println("🔍 === ENROLLMENT DEBUG: " + operation + " ===");
+        System.out.println("📊 Enrollment ID: " + enrollment.getId());
+        System.out.println("📥 Request - Completed: " + request.getCompleted() + ", Passed: " + request.getPassed());
+        System.out.println("📊 Current - Completed: " + enrollment.isCompleted() + ", Passed: " + enrollment.getPassed());
+        System.out.println("🎯 Test Score: " + enrollment.getTestScore() + "/" + enrollment.getTotalQuestions());
+        System.out.println("📈 Percentage: " + enrollment.getPercentage());
+        System.out.println("📅 Completion Date: " + enrollment.getCompletionDate());
+        System.out.println("🔍 ==================================");
     }
 }

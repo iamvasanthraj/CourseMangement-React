@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import './CourseCard.css';
 import RatingModal from '../../shared/RatingModal';
 import TestModal from '../../test/TestModal';
+import { testResultsAPI } from '../../../services/api';
 import UnenrollConfirmationModal from '../../dashboard/student/UnenrollConfirmationModal';
 import Certificate from '../../shared/Certificate';
 import { getRandomQuestions } from '../../../utils/questionUtils';
 import { useDashboard } from '../../../hooks/useDashboard';
 import ModalPortal from '../../shared/ModalPortal';
-
-// ✅ FIX: Define constants outside the component
-const TEST_SCORES_KEY = 'course_test_scores';
 
 const CourseCard = ({ 
   course, 
@@ -19,6 +17,7 @@ const CourseCard = ({
   onEnroll, 
   onRate,
   onUnenroll,
+  onCompleteCourse, // ✅ ADD: New prop for completing course
   loading, 
   showEnrollButton = true,
   enrollmentData
@@ -26,9 +25,10 @@ const CourseCard = ({
   const [activeModal, setActiveModal] = useState(null);
   const [isUnenrolling, setIsUnenrolling] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [loadingTestResult, setLoadingTestResult] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Get handleTestCompletion directly from useDashboard
   const { handleTestCompletion, refreshEnrollments, showMessage } = useDashboard();
 
   // Ensure component is mounted before showing modals
@@ -36,6 +36,117 @@ const CourseCard = ({
     setIsMounted(true);
     return () => setIsMounted(false);
   }, []);
+
+  // ✅ UPDATED: Fetch test result AND check completion status
+  useEffect(() => {
+    if (isEnrolled && enrollmentData?.enrollmentId) {
+      fetchTestResultFromMySQL();
+      checkAndUpdateCompletionStatus();
+    }
+  }, [isEnrolled, enrollmentData?.enrollmentId]);
+
+  // ✅ ADD: Function to check if course should be marked as completed
+  const checkAndUpdateCompletionStatus = async () => {
+    if (!enrollmentData?.enrollmentId || enrollmentData.completed) return;
+    
+    try {
+      console.log('🔍 Checking if course should be marked as completed...');
+      const response = await testResultsAPI.getTestResultByEnrollment(enrollmentData.enrollmentId);
+      
+      if (response.success && response.testResult) {
+        const testData = response.testResult;
+        console.log('📊 Test result for completion check:', testData);
+        
+        // ✅ Check if test was passed but course not marked completed
+        if (testData.passed && !enrollmentData.completed) {
+          console.log('🎯 Test passed but course not completed - marking as complete');
+          await markCourseAsCompleted();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error checking completion status:', error);
+    }
+  };
+
+  // ✅ ADD: Function to mark course as completed
+  const markCourseAsCompleted = async () => {
+    if (!onCompleteCourse || !enrollmentData?.enrollmentId) {
+      console.error('🛑 Missing onCompleteCourse function or enrollmentId');
+      return;
+    }
+
+    try {
+      console.log('✅ Marking course as completed:', {
+        enrollmentId: enrollmentData.enrollmentId,
+        courseId: course.id,
+        courseTitle: course.title
+      });
+
+      await onCompleteCourse({
+        enrollmentId: enrollmentData.enrollmentId,
+        courseId: course.id,
+        completionDate: new Date().toISOString()
+      });
+
+      // Refresh enrollments to get updated data
+      if (refreshEnrollments) {
+        await refreshEnrollments();
+      }
+
+      showMessage('🎉 Course completed successfully! Certificate is now available.', 'success');
+      
+    } catch (error) {
+      console.error('🛑 Failed to mark course as completed:', error);
+      showMessage('Failed to update course completion status.', 'error');
+    }
+  };
+
+  // ✅ ADD: Function to handle test completion (call this when test is submitted)
+  const handleTestSubmitted = async (testData) => {
+    try {
+      console.log('📝 Test submitted, checking results...', testData);
+      
+      // Wait a moment for the result to be saved to MySQL
+      setTimeout(async () => {
+        await fetchTestResultFromMySQL();
+        await checkAndUpdateCompletionStatus();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ Error handling test submission:', error);
+    }
+  };
+
+  // ✅ UPDATED: Fetch test result from MySQL
+  const fetchTestResultFromMySQL = async () => {
+    if (!enrollmentData?.enrollmentId) return;
+    
+    try {
+      setLoadingTestResult(true);
+      console.log('📊 Fetching test result from MySQL for enrollment:', enrollmentData.enrollmentId);
+      
+      const response = await testResultsAPI.getTestResultByEnrollment(enrollmentData.enrollmentId);
+      
+      if (response.success && response.testResult) {
+        console.log('✅ MySQL test result:', response.testResult);
+        setTestResult(response.testResult);
+        
+        // ✅ AUTO-COMPLETION: If test passed but course not completed, mark it
+        if (response.testResult.passed && !enrollmentData.completed) {
+          console.log('🏆 Auto-completing course after passed test');
+          await markCourseAsCompleted();
+        }
+      } else {
+        console.log('📝 No test result found in MySQL');
+        setTestResult(null);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching test result from MySQL:', error);
+      setTestResult(null);
+    } finally {
+      setLoadingTestResult(false);
+    }
+  };
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -51,45 +162,30 @@ const CourseCard = ({
   }, [activeModal, isMounted]);
 
   // ✅ SIMPLIFIED: Check BOTH course object AND enrollmentData for rating info
- // ✅ FIXED: Check BOTH course object AND enrollmentData for rating info
-// ✅ FIXED: Only show real ratings, ignore fake enrollment ratings
-// ✅ SIMPLE FIX: Always use course rating data as source of truth
-// ✅ FIXED: Only use real course data for ratings
-const getRatingData = () => {
-  // Course data is the ONLY source of truth for ratings
-  const courseRating = parseFloat(course?.averageRating);
-  const courseTotal = parseInt(course?.totalRatings) || 0;
+  const getRatingData = () => {
+    const courseRating = parseFloat(course?.averageRating);
+    const courseTotal = parseInt(course?.totalRatings) || 0;
 
-  console.log('🔍 FINAL RATING CHECK:', {
-    courseTitle: course?.title,
-    courseRating,
-    courseTotal,
-    hasRealRating: courseRating > 0
-  });
+    if (!isNaN(courseRating) && courseRating > 0) {
+      return {
+        averageRating: courseRating,
+        totalRatings: courseTotal,
+        enrolledStudents: parseInt(course?.enrolledStudents) || 0
+      };
+    }
 
-  if (!isNaN(courseRating) && courseRating > 0) {
     return {
-      averageRating: courseRating,
-      totalRatings: courseTotal,
+      averageRating: 0.0,
+      totalRatings: 0,
       enrolledStudents: parseInt(course?.enrolledStudents) || 0
     };
-  }
-
-  // Course has no rating - show 0.0
-  return {
-    averageRating: 0.0,
-    totalRatings: 0,
-    enrolledStudents: parseInt(course?.enrolledStudents) || 0
   };
-};
 
-  // ✅ UPDATED: Use the unified rating data
   const ratingData = getRatingData();
   const averageRating = ratingData.averageRating;
   const totalRatings = ratingData.totalRatings;
   const enrolledStudents = ratingData.enrolledStudents;
 
-  // ✅ UPDATED: Check both sources for other course information
   const instructorName = enrollmentData?.instructorName || course?.instructorName || 
                         (user?.role === 'INSTRUCTOR' ? user.username : 'Course Instructor');
   
@@ -97,97 +193,65 @@ const getRatingData = () => {
   const courseLevel = enrollmentData?.level || course?.level || 'Beginner';
   const courseBatch = enrollmentData?.batch || course?.batch || 'Current Batch';
   
-  // ✅ FIX: Define courseDescription with proper fallback
   const courseDescription = course?.description || enrollmentData?.courseDescription || 
                            `Master ${course?.title || enrollmentData?.courseTitle} through hands-on projects and expert guidance.`;
 
-  // ✅ FIX: Move getEnrollmentId function to the top
   const enrollmentId = React.useMemo(() => {
     return enrollmentData?.enrollmentId || enrollmentData?.id || enrollmentData?._id;
   }, [enrollmentData]);
 
-  // Function to store test scores locally
-  const storeTestScoresLocally = (courseId, testResults) => {
-    try {
-      const existingScores = JSON.parse(localStorage.getItem(TEST_SCORES_KEY) || '{}');
-      existingScores[`${courseId}_${user?.userId}`] = {
-        testScore: testResults.correctAnswers,
-        totalQuestions: testResults.totalQuestions,
-        percentage: testResults.score,
-        timestamp: new Date().toISOString(),
-        courseTitle: course.title
-      };
-      localStorage.setItem(TEST_SCORES_KEY, JSON.stringify(existingScores));
-      console.log('💾 Test scores stored locally:', existingScores);
-    } catch (error) {
-      console.error('🛑 Failed to store test scores locally:', error);
-    }
-  };
-
-  // Function to get test scores from local storage
-  const getLocalTestScores = (courseId) => {
-    try {
-      const existingScores = JSON.parse(localStorage.getItem(TEST_SCORES_KEY) || '{}');
-      return existingScores[`${courseId}_${user?.userId}`];
-    } catch (error) {
-      console.error('🛑 Failed to get local test scores:', error);
-      return null;
-    }
-  };
-
-  // ✅ SIMPLIFIED: Check if user is eligible for certificate
-  const isEligibleForCertificate = () => {
-    const isCompleted = enrollmentData?.completed;
-    
-    console.log('📊 Simple Certificate Check:', {
-      completed: isCompleted,
-      isEligible: isCompleted
-    });
-    
-    return isCompleted;
-  };
-
-  // ✅ UPDATED: Get test score information with local storage fallback
+  // ✅ UPDATED: Get test score information with MySQL priority
   const getTestScoreInfo = () => {
-    // First, try to get from enrollment data
+    // 1. First try MySQL test results (most reliable)
+    if (testResult) {
+      console.log('📊 Using MySQL test result:', testResult);
+      return {
+        score: testResult.testScore,
+        total: testResult.totalQuestions,
+        percentage: testResult.percentage,
+        passed: testResult.passed,
+        fromDatabase: true
+      };
+    }
+    
+    // 2. Then try enrollment data (fallback)
     if (enrollmentData?.testScore !== undefined && enrollmentData.testScore > 0) {
+      const total = enrollmentData.totalQuestions || 10;
+      const percentage = enrollmentData.percentage || (enrollmentData.testScore / total) * 100;
+      const passed = enrollmentData.testScore >= (total * 0.6); // 60% passing
+      
       return {
         score: enrollmentData.testScore,
-        total: enrollmentData.totalQuestions || 10,
-        percentage: enrollmentData.percentage || (enrollmentData.testScore / (enrollmentData.totalQuestions || 10)) * 100,
-        passed: enrollmentData.testScore >= 6
+        total: total,
+        percentage: percentage,
+        passed: passed
       };
     }
     
-    // Second, try local storage backup
-    const localScores = getLocalTestScores(course.id);
-    if (localScores) {
-      console.log('📋 Using local test scores:', localScores);
-      return {
-        score: localScores.testScore,
-        total: localScores.totalQuestions,
-        percentage: localScores.percentage,
-        passed: localScores.testScore >= 6
-      };
-    }
-    
-    // Final fallback: show completed but no specific scores
-    if (enrollmentData?.completed) {
-      return {
-        score: 8,
-        total: 10,
-        percentage: 80,
-        passed: true
-      };
-    }
-    
-    // Default for incomplete courses
+    // 3. Default for incomplete courses
     return {
       score: 0,
       total: 10,
       percentage: 0,
       passed: false
     };
+  };
+
+  // ✅ UPDATED: Certificate eligibility using MySQL data
+  const isEligibleForCertificate = () => {
+    const isCompleted = enrollmentData?.completed;
+    const scoreInfo = getTestScoreInfo();
+    
+    console.log('🏆 CERTIFICATE ELIGIBILITY CHECK:', {
+      courseTitle: course?.title,
+      isCompleted,
+      testScore: scoreInfo.score,
+      passed: scoreInfo.passed,
+      fromMySQL: !!testResult,
+      eligible: isCompleted && scoreInfo.passed
+    });
+    
+    return isCompleted && scoreInfo.passed;
   };
 
   const handleEnrollClick = async () => {
@@ -205,58 +269,33 @@ const getRatingData = () => {
     setActiveModal('test');
   };
 
-  const handleConfirmTest = () => {
-    console.log('🚀 Starting test with random questions...');
-    
-    if (!course?.id) {
-      console.error('🛑 Missing course ID');
-      alert('Course information missing');
-      return;
-    }
-
-    if (!user?.userId) {
-      console.error('🛑 Missing user ID');
-      alert('User information missing');
-      return;
-    }
-
-    // Close modal first
-    setActiveModal(null);
-
-    // Generate a unique session ID for this test attempt
-    const testSessionId = `test_${course.id}_${user.userId}_${Date.now()}`;
-    
-    // Get 10 random questions
+// In CourseCard.jsx - FIXED handleConfirmTest
+const handleConfirmTest = async () => {
+  console.log('🚀 Starting test...');
+  
+  try {
     const randomQuestions = getRandomQuestions(10);
+    console.log('📋 Questions generated:', randomQuestions?.length);
     
-    // Prepare test data using available information
+    // ✅ FIXED: Remove any functions from the state
     const testData = {
-      // Required identifiers
       courseId: course.id,
       courseTitle: course.title,
       studentId: user.userId,
-      studentName: user.name || user.email,
-      
-      // Use available enrollment data or create temporary session
-      enrollmentId: enrollmentId || testSessionId,
-      isTemporarySession: !enrollmentId,
-      
-      // Random test questions
+      enrollmentId: enrollmentId,
       questions: randomQuestions,
       totalQuestions: randomQuestions.length,
-      duration: 5 * 60, // 5 minutes
-      
-      // Additional context for the test
-      courseCategory: course.category,
-      courseLevel: course.level,
-      instructorName: instructorName
+      duration: 5 * 60,
     };
 
-    console.log('📤 Navigating to test page with random questions:', randomQuestions.length);
-
-    // Navigate to test page
+    setActiveModal(null);
     navigate('/test', { state: testData });
-  };
+    
+  } catch (error) {
+    console.error('❌ Failed to start test:', error);
+    alert('Failed to start test. Please try again.');
+  }
+};
 
   // Show unenroll confirmation modal
   const handleUnenrollClick = () => {
@@ -290,7 +329,6 @@ const getRatingData = () => {
         enrollmentId: enrollmentId
       });
 
-      // Call unenroll with available information
       await onUnenroll({
         courseId: course.id,
         userId: user.userId,
@@ -302,7 +340,6 @@ const getRatingData = () => {
       
     } catch (error) {
       console.error('🛑 Unenroll failed:', error);
-      // Error is handled by the parent component
     } finally {
       setIsUnenrolling(false);
       setActiveModal(null);
@@ -328,7 +365,6 @@ const getRatingData = () => {
   const handleRatingUpdated = (ratingData) => {
     setActiveModal(null);
     if (onRate && course?.id) {
-      // Pass course ID and rating data to parent
       onRate(course.id, ratingData?.rating || 0, ratingData);
     }
   };
@@ -365,10 +401,11 @@ const getRatingData = () => {
 
   const scoreInfo = getTestScoreInfo();
   const canShowCertificate = isEligibleForCertificate();
+  const hasTestScore = scoreInfo.score > 0;
 
   return (
     <>
-      {/* MODALS USING PORTALS - RENDERED OUTSIDE COMPONENT TREE */}
+      {/* MODALS USING PORTALS */}
       <ModalPortal isOpen={activeModal === 'certificate'}>
         <div className="certificate-modal-wrapper">
           <Certificate
@@ -411,7 +448,7 @@ const getRatingData = () => {
         </div>
       </ModalPortal>
 
-      {/* Course Card - Normal rendering */}
+      {/* Course Card */}
       <div className="course-card quantum-glass">
         {/* Certificate Badge for completed courses */}
         {canShowCertificate && (
@@ -429,7 +466,6 @@ const getRatingData = () => {
         <div className="card-content">
           <h3 className="course-title">{course.title}</h3>
 
-          {/* ✅ UPDATED: Course meta information with real data */}
           <div className="course-meta">
             <div className="meta-item">
               <span className="meta-icon">👨‍🏫</span>
@@ -478,17 +514,18 @@ const getRatingData = () => {
               </div>
               
               {/* Test Score Display */}
-              {(enrollmentData.testScore !== undefined || enrollmentData.completed) && (
+              {hasTestScore && (
                 <div className="enrollment-stat">
                   <span className="stat-icon">
                     {scoreInfo.passed ? '🎯' : '📝'}
                   </span>
                   <div className="stat-info">
                     <div className="stat-value">
-                      Test Score
+                      Test Score {testResult && '✅'}
                     </div>
                     <div className={`stat-date ${scoreInfo.passed ? 'passed' : 'failed'}`}>
                       {scoreInfo.score}/{scoreInfo.total} ({scoreInfo.percentage}%)
+                      {scoreInfo.passed ? ' - Passed! 🎉' : ' - Try Again'}
                     </div>
                   </div>
                 </div>
@@ -496,7 +533,6 @@ const getRatingData = () => {
             </div>
           )}
 
-          {/* ✅ FIXED: Course stats with proper 0.0 rating display */}
           <div className="course-stats">
             <div className="stat">
               <span className={`stat-value ${averageRating === 0 ? 'zero-rating' : ''}`}>
@@ -530,7 +566,7 @@ const getRatingData = () => {
 
           {isEnrolled && (
             <>
-              {/* Before Test Completion: 2 buttons, each in separate row */}
+              {/* ✅ UPDATED: Show certificate button when test is passed */}
               {!enrollmentData?.completed && (
                 <div className="enrolled-actions before-test">
                   <button 
@@ -551,10 +587,9 @@ const getRatingData = () => {
                 </div>
               )}
               
-              {/* After Test Completion: 3 buttons in first row, unenroll below */}
+              {/* ✅ UPDATED: After completion - Show certificate button if passed */}
               {enrollmentData?.completed && (
                 <div className="enrolled-actions after-test">
-                  {/* First row: 3 buttons */}
                   <div className="after-test-row">
                     <button 
                       onClick={handleStartTestClick} 
@@ -563,13 +598,18 @@ const getRatingData = () => {
                     >
                       🔄 Retake Test
                     </button>
-                    <button 
-                      onClick={handleCertificateClick} 
-                      className="action-btn certificate-btn"
-                      title={`View your certificate! Score: ${scoreInfo.score}/${scoreInfo.total} (${scoreInfo.percentage}%)`}
-                    >
-                      🎓 View Certificate
-                    </button>
+                    
+                    {/* ✅ CERTIFICATE BUTTON - Only show if test passed */}
+                    {scoreInfo.passed && (
+                      <button 
+                        onClick={handleCertificateClick} 
+                        className="action-btn certificate-btn"
+                        title={`View your certificate! Score: ${scoreInfo.score}/${scoreInfo.total} (${scoreInfo.percentage}%)`}
+                      >
+                        🎓 View Certificate
+                      </button>
+                    )}
+                    
                     <button 
                       onClick={handleRateClick} 
                       className="action-btn rate-btn"
@@ -578,7 +618,6 @@ const getRatingData = () => {
                       <StarIcon /> Rate Course
                     </button>
                   </div>
-                  {/* Second row: Unenroll button */}
                   <div className="after-test-single">
                     <button 
                       onClick={handleUnenrollClick} 
