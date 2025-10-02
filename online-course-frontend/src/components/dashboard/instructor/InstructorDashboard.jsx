@@ -15,7 +15,7 @@ const InstructorDashboard = () => {
     <div className="dashboard-section">
       <div className="section-header">
         <h2 className="section-title">➕ Create New Course</h2>
-        <p className="section-subtitle">Fill in the details to create a new course for students</p>
+        {/* <p className="section-subtitle">Fill in the details to create a new course for students</p> */}
       </div>
       
       <CourseForm 

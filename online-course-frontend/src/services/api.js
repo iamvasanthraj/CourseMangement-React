@@ -2,11 +2,18 @@
 
 const BASE_URL = 'http://localhost:8080/api';
 
-// Fixed API call function with better error handling
+// Error handling class
+class APIError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'APIError';
+    this.status = status;
+  }
+}
+
+// Core API call function
 const apiCall = async (endpoint, options = {}) => {
   try {
-    console.log(`🔍 API Call: ${endpoint}`, options);
-    
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -15,61 +22,122 @@ const apiCall = async (endpoint, options = {}) => {
       ...options,
     });
 
-    console.log(`🔍 API Response Status: ${response.status} for ${endpoint}`);
-
     if (!response.ok) {
-      // Get error message from response body
-      const errorText = await response.text();
-      console.error(`❌ API Error ${response.status}:`, errorText);
-      throw new Error(`API Error: ${response.status} - ${errorText || response.statusText}`);
+      let errorMessage = response.statusText;
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || JSON.stringify(errorData);
+      } catch {
+        try {
+          errorMessage = await response.text();
+        } catch {
+          errorMessage = response.statusText;
+        }
+      }
+      
+      throw new APIError(errorMessage, response.status);
     }
 
-    // Check if response has content before parsing JSON
+    // Handle successful responses
     const contentType = response.headers.get('content-type');
     const contentLength = response.headers.get('content-length');
     
-    console.log(`🔍 Response Headers - Content-Type: ${contentType}, Content-Length: ${contentLength}`);
-
-    // If no content or not JSON, return empty object or appropriate value
     if (!contentType || !contentType.includes('application/json')) {
-      console.log('🔍 Response is not JSON, returning success status');
       return { success: true, status: response.status };
     }
 
     if (contentLength === '0') {
-      console.log('🔍 Response is empty, returning empty object');
       return {};
     }
 
-    // Try to parse JSON safely
     const responseText = await response.text();
-    console.log(`🔍 Raw response length: ${responseText.length} characters`);
     
-    // Log first 500 chars for debugging
-    if (responseText.length > 0) {
-      console.log(`🔍 Response preview: ${responseText.substring(0, 500)}...`);
-    }
-
     if (!responseText || responseText.trim() === '') {
-      console.log('🔍 Empty response text, returning empty object');
       return {};
     }
 
-    try {
-      const data = JSON.parse(responseText);
-      console.log(`🔍 Parsed JSON data:`, data);
-      return data;
-    } catch (parseError) {
-      console.error(`❌ JSON Parse Error for ${endpoint}:`, parseError);
-      console.error(`❌ Problematic response: ${responseText.substring(0, 1000)}`);
-      throw new Error(`Invalid JSON response from server: ${parseError.message}`);
-    }
+    return JSON.parse(responseText);
 
   } catch (error) {
-    console.error('❌ API Call Failed:', error);
+    console.error('API Call Failed:', error);
     throw error;
   }
 };
+
+// Data normalization utilities
+const normalizeCourseData = (course) => {
+  let averageRating = 0;
+  if (course.averageRating !== undefined && course.averageRating !== null) {
+    if (typeof course.averageRating === 'number') {
+      averageRating = course.averageRating;
+    } else if (typeof course.averageRating === 'object') {
+      averageRating = course.averageRating.doubleValue ? course.averageRating.doubleValue() : 0;
+    } else {
+      averageRating = parseFloat(course.averageRating) || 0;
+    }
+  }
+
+  const totalRatings = course.totalRatings || 0;
+  const enrolledStudents = course.enrolledStudents !== undefined ? 
+    course.enrolledStudents : 
+    (course.enrollments ? course.enrollments.length : 0);
+
+  let instructorName = 'Course Instructor';
+  if (course.instructorName) {
+    instructorName = course.instructorName;
+  } else if (course.instructor) {
+    if (typeof course.instructor === 'string') {
+      instructorName = course.instructor;
+    } else if (course.instructor.name) {
+      instructorName = course.instructor.name;
+    } else if (course.instructor.username) {
+      instructorName = course.instructor.username;
+    } else if (course.instructor.email) {
+      instructorName = course.instructor.email.split('@')[0];
+    }
+  }
+
+  return {
+    ...course,
+    averageRating,
+    totalRatings,
+    enrolledStudents,
+    instructorName,
+    duration: course.duration || '8 weeks',
+    level: course.level || 'Beginner',
+    batch: course.batch || 'Current Batch',
+    price: course.price || 0,
+    description: course.description || `Master ${course.title} through comprehensive lessons and hands-on projects.`
+  };
+};
+
+const normalizeEnrollmentData = (item) => ({
+  enrollmentId: item.enrollmentId || item.id,
+  id: item.id || item.enrollmentId,
+  studentId: item.studentId,
+  studentName: item.studentName,
+  courseId: item.courseId,
+  courseTitle: item.courseTitle,
+  courseCategory: item.courseCategory,
+  enrollmentDate: item.enrollmentDate,
+  completed: item.completed || false,
+  completionDate: item.completionDate,
+  testScore: item.testScore || 0,
+  totalQuestions: item.totalQuestions || 10,
+  percentage: item.percentage || 0,
+  passed: item.passed || false,
+  rating: item.rating,
+  feedback: item.feedback,
+  courseAverageRating: item.courseAverageRating || 4.5,
+  courseTotalRatings: item.courseTotalRatings || Math.floor(Math.random() * 50) + 10,
+  enrolledStudents: item.enrolledStudents || Math.floor(Math.random() * 100) + 20,
+  instructorName: item.instructorName || 'Course Instructor',
+  duration: item.duration || '8 weeks',
+  level: item.level || 'Beginner',
+  batch: item.batch || 'Current Batch',
+  price: item.price || 0
+});
 
 // ==================== AUTHENTICATION API ====================
 export const authAPI = {
@@ -86,10 +154,45 @@ export const authAPI = {
       body: JSON.stringify(userData),
     });
   },
+
+  logout: async () => {
+    return apiCall('/auth/logout', {
+      method: 'POST',
+    });
+  },
+
+  refreshToken: async (refreshToken) => {
+    return apiCall('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    });
+  },
+
+  forgotPassword: async (email) => {
+    return apiCall('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword: async (token, newPassword) => {
+    return apiCall('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    });
+  },
+
+  verifyEmail: async (token) => {
+    return apiCall('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
 };
 
 // ==================== USERS API ====================
 export const usersAPI = {
+  // GET operations
   getAll: async () => {
     return apiCall('/users');
   },
@@ -102,35 +205,50 @@ export const usersAPI = {
     return apiCall(`/users/email/${email}`);
   },
 
-  // ✅ UPDATED: Fixed update method to match backend DTO
+  getByRole: async (role) => {
+    return apiCall(`/users/role/${role}`);
+  },
+
+  getProfile: async () => {
+    return apiCall('/users/profile');
+  },
+
+  // Validation operations
+  checkEmail: async (email) => {
+    return apiCall(`/users/check-email/${email}`);
+  },
+
+  checkUsername: async (username) => {
+    return apiCall(`/users/check-username/${username}`);
+  },
+
+  // UPDATE operations
   update: async (userId, userData) => {
     return apiCall(`/users/${userId}`, {
       method: 'PUT',
       body: JSON.stringify({
-        name: userData.username, // Map to 'name' field in backend
+        name: userData.username,
         email: userData.email,
         avatarIndex: userData.avatar
       }),
     });
   },
 
-  delete: async (userId) => {
-    return apiCall(`/users/${userId}`, {
-      method: 'DELETE',
+  updateProfile: async (userData) => {
+    return apiCall('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(userData),
     });
   },
 
-  getByRole: async (role) => {
-    return apiCall(`/users/role/${role}`);
+  updateAvatar: async (userId, avatarIndex) => {
+    return apiCall(`/users/${userId}/avatar`, {
+      method: 'PATCH',
+      body: JSON.stringify({ avatarIndex }),
+    });
   },
 
-  checkEmail: async (email) => {
-    return apiCall(`/users/check-email/${email}`);
-  },
-
-  // ✅ UPDATED: Fixed change password method to match backend
   changePassword: async (userId, passwordData) => {
-    console.log('🔐 Changing password via API:', { userId, passwordData });
     return apiCall(`/users/${userId}/change-password`, {
       method: 'POST',
       body: JSON.stringify({
@@ -140,139 +258,59 @@ export const usersAPI = {
     });
   },
 
-  // ✅ ADD: Update avatar only endpoint
-  updateAvatar: async (userId, avatarIndex) => {
-    console.log('🖼️ Updating avatar via API:', { userId, avatarIndex });
-    return apiCall(`/users/${userId}/avatar`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        avatarIndex: avatarIndex
-      }),
+  // DELETE operations
+  delete: async (userId) => {
+    return apiCall(`/users/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  deactivate: async (userId) => {
+    return apiCall(`/users/${userId}/deactivate`, {
+      method: 'PUT',
     });
   }
 };
 
 // ==================== COURSES API ====================
 export const coursesAPI = {
+  // GET operations
   getAll: async () => {
     const data = await apiCall('/courses');
-    
-    // ✅ ENHANCED: Normalize course data with proper rating fields
-    return Array.isArray(data) ? data.map(course => {
-      console.log('📊 Raw course data:', course);
-      
-      // Handle averageRating (could be number, BigDecimal, or undefined)
-      let averageRating = 0;
-      if (course.averageRating !== undefined && course.averageRating !== null) {
-        if (typeof course.averageRating === 'number') {
-          averageRating = course.averageRating;
-        } else if (typeof course.averageRating === 'object') {
-          // Handle Java BigDecimal or other objects
-          averageRating = course.averageRating.doubleValue ? course.averageRating.doubleValue() : 0;
-        } else {
-          averageRating = parseFloat(course.averageRating) || 0;
-        }
-      }
-      
-      // Handle totalRatings
-      const totalRatings = course.totalRatings || 0;
-      
-      // Handle enrolledStudents
-      const enrolledStudents = course.enrolledStudents !== undefined ? 
-        course.enrolledStudents : 
-        (course.enrollments ? course.enrollments.length : 0);
-      
-      // Handle instructor name with multiple fallbacks
-      let instructorName = 'Course Instructor';
-      if (course.instructorName) {
-        instructorName = course.instructorName;
-      } else if (course.instructor) {
-        if (typeof course.instructor === 'string') {
-          instructorName = course.instructor;
-        } else if (course.instructor.name) {
-          instructorName = course.instructor.name;
-        } else if (course.instructor.username) {
-          instructorName = course.instructor.username;
-        } else if (course.instructor.email) {
-          instructorName = course.instructor.email.split('@')[0];
-        }
-      }
-      
-      const normalizedCourse = {
-        ...course,
-        // ✅ Ensure all required fields exist with proper values
-        averageRating: averageRating,
-        totalRatings: totalRatings,
-        enrolledStudents: enrolledStudents,
-        instructorName: instructorName,
-        duration: course.duration || '8 weeks',
-        level: course.level || 'Beginner',
-        batch: course.batch || 'Current Batch',
-        price: course.price || 0,
-        description: course.description || `Master ${course.title} through comprehensive lessons and hands-on projects.`
-      };
-      
-      console.log('✅ Normalized course:', normalizedCourse.title, {
-        averageRating: normalizedCourse.averageRating,
-        totalRatings: normalizedCourse.totalRatings,
-        enrolledStudents: normalizedCourse.enrolledStudents
-      });
-      
-      return normalizedCourse;
-    }) : [];
+    return Array.isArray(data) ? data.map(normalizeCourseData) : [];
   },
 
   getById: async (courseId) => {
     const course = await apiCall(`/courses/${courseId}`);
-    
-    // ✅ Apply same normalization for single course
-    if (course) {
-      let averageRating = 0;
-      if (course.averageRating !== undefined && course.averageRating !== null) {
-        if (typeof course.averageRating === 'number') {
-          averageRating = course.averageRating;
-        } else if (typeof course.averageRating === 'object') {
-          averageRating = course.averageRating.doubleValue ? course.averageRating.doubleValue() : 0;
-        } else {
-          averageRating = parseFloat(course.averageRating) || 0;
-        }
-      }
-      
-      return {
-        ...course,
-        averageRating: averageRating,
-        totalRatings: course.totalRatings || 0,
-        enrolledStudents: course.enrolledStudents || (course.enrollments ? course.enrollments.length : 0),
-        instructorName: course.instructorName || 
-                       (course.instructor?.name || course.instructor?.username || 'Course Instructor'),
-        duration: course.duration || '8 weeks',
-        level: course.level || 'Beginner',
-        batch: course.batch || 'Current Batch'
-      };
-    }
-    return course;
+    return course ? normalizeCourseData(course) : course;
   },
 
   getByCategory: async (category) => {
     const data = await apiCall(`/courses/category/${category}`);
-    return Array.isArray(data) ? data.map(course => ({
-      ...course,
-      averageRating: course.averageRating ? (typeof course.averageRating === 'number' ? course.averageRating : course.averageRating.doubleValue()) : 0,
-      totalRatings: course.totalRatings || 0,
-      enrolledStudents: course.enrolledStudents || 0
-    })) : [];
+    return Array.isArray(data) ? data.map(normalizeCourseData) : [];
   },
 
-  getInstructorCourses: async (instructorId) => {
+  getByInstructor: async (instructorId) => {
     const data = await apiCall(`/courses/instructor/${instructorId}`);
-    return Array.isArray(data) ? data.map(course => ({
-      ...course,
-      averageRating: course.averageRating ? (typeof course.averageRating === 'number' ? course.averageRating : course.averageRating.doubleValue()) : 0,
-      totalRatings: course.totalRatings || 0,
-      enrolledStudents: course.enrolledStudents || (course.enrollments ? course.enrollments.length : 0)
-    })) : [];
+    return Array.isArray(data) ? data.map(normalizeCourseData) : [];
   },
 
+  getFeatured: async () => {
+    const data = await apiCall('/courses/featured');
+    return Array.isArray(data) ? data.map(normalizeCourseData) : [];
+  },
+
+  getPopular: async () => {
+    const data = await apiCall('/courses/popular');
+    return Array.isArray(data) ? data.map(normalizeCourseData) : [];
+  },
+
+  search: async (query) => {
+    const data = await apiCall(`/courses/search?q=${encodeURIComponent(query)}`);
+    return Array.isArray(data) ? data.map(normalizeCourseData) : [];
+  },
+
+  // CREATE operations
   create: async (courseData) => {
     return apiCall('/courses', {
       method: 'POST',
@@ -280,6 +318,7 @@ export const coursesAPI = {
     });
   },
 
+  // UPDATE operations
   update: async (courseId, courseData) => {
     return apiCall(`/courses/${courseId}`, {
       method: 'PUT',
@@ -287,61 +326,30 @@ export const coursesAPI = {
     });
   },
 
+  updateStatus: async (courseId, status) => {
+    return apiCall(`/courses/${courseId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // DELETE operations
   delete: async (courseId) => {
     return apiCall(`/courses/${courseId}`, {
       method: 'DELETE',
     });
-  },
+  }
 };
 
 // ==================== ENROLLMENT API ====================
 export const enrollmentAPI = {
+  // GET operations
   getStudentEnrollments: async (studentId) => {
-    console.log(`🎓 Fetching enrollments for student: ${studentId}`);
     try {
       const data = await apiCall(`/enrollments/student/${studentId}`);
-      
-      // ✅ UPDATED: Handle new course rating fields
-      const normalizedData = Array.isArray(data) ? data.map(item => {
-        return {
-          // Enrollment fields
-          enrollmentId: item.enrollmentId || item.id,
-          id: item.id || item.enrollmentId,
-          studentId: item.studentId,
-          studentName: item.studentName,
-          courseId: item.courseId,
-          courseTitle: item.courseTitle,
-          courseCategory: item.courseCategory,
-          enrollmentDate: item.enrollmentDate,
-          completed: item.completed || false,
-          completionDate: item.completionDate,
-          
-          // Test score fields
-          testScore: item.testScore || 0,
-          totalQuestions: item.totalQuestions || 10,
-          percentage: item.percentage || 0,
-          passed: item.passed || false,
-          
-          // Rating fields
-          rating: item.rating, // User's personal rating
-          feedback: item.feedback,
-          
-          // ✅ ADD: Course rating data
-          courseAverageRating: item.courseAverageRating || 4.5,
-          courseTotalRatings: item.courseTotalRatings || Math.floor(Math.random() * 50) + 10,
-          enrolledStudents: item.enrolledStudents || Math.floor(Math.random() * 100) + 20,
-          instructorName: item.instructorName || 'Course Instructor',
-          duration: item.duration || '8 weeks',
-          level: item.level || 'Beginner',
-          batch: item.batch || 'Current Batch',
-          price: item.price || 0
-        };
-      }) : [];
-      
-      console.log(`🎓 Normalized ${normalizedData.length} enrollments with course data`);
-      return normalizedData;
+      return Array.isArray(data) ? data.map(normalizeEnrollmentData) : [];
     } catch (error) {
-      console.error('🎓 Error fetching enrollments:', error);
+      console.error('Error fetching enrollments:', error);
       return [];
     }
   },
@@ -350,6 +358,15 @@ export const enrollmentAPI = {
     return apiCall(`/enrollments/course/${courseId}`);
   },
 
+  getEnrollment: async (enrollmentId) => {
+    return apiCall(`/enrollments/${enrollmentId}`);
+  },
+
+  getEnrollmentByUserAndCourse: async (userId, courseId) => {
+    return apiCall(`/enrollments/user/${userId}/course/${courseId}`);
+  },
+
+  // CREATE operations
   enroll: async (enrollmentData) => {
     return apiCall('/enrollments/enroll', {
       method: 'POST',
@@ -357,12 +374,7 @@ export const enrollmentAPI = {
     });
   },
 
-  unenroll: async (enrollmentId) => {
-    return apiCall(`/enrollments/${enrollmentId}`, {
-      method: 'DELETE',
-    });
-  },
-
+  // UPDATE operations
   markComplete: async (enrollmentId) => {
     return apiCall(`/enrollments/${enrollmentId}/complete`, {
       method: 'PUT',
@@ -370,45 +382,42 @@ export const enrollmentAPI = {
     });
   },
 
-  // ✅ UPDATED: Enhanced completeCourse to handle both test results and course completion
   completeCourse: async (enrollmentId, completionData) => {
-    console.log('🎓 Completing course with data:', { 
-      enrollmentId, 
-      completionData 
+    const updatePayload = {
+      completed: completionData.completed !== undefined ? completionData.completed : true,
+      ...(completionData.completionDate && { completionDate: completionData.completionDate }),
+      ...(completionData.testScore !== undefined && { testScore: completionData.testScore }),
+      ...(completionData.totalQuestions !== undefined && { totalQuestions: completionData.totalQuestions }),
+      ...(completionData.percentage !== undefined && { percentage: completionData.percentage }),
+      ...(completionData.passed !== undefined && { passed: completionData.passed }),
+      ...(completionData.rating !== undefined && { rating: completionData.rating }),
+      ...(completionData.feedback && { feedback: completionData.feedback })
+    };
+
+    return apiCall(`/enrollments/${enrollmentId}/complete`, {
+      method: 'PUT',
+      body: JSON.stringify(updatePayload),
     });
-    
-    try {
-      // Prepare the update payload
-      const updatePayload = {
-        completed: completionData.completed !== undefined ? completionData.completed : true,
-        ...(completionData.completionDate && { completionDate: completionData.completionDate }),
-        ...(completionData.testScore !== undefined && { testScore: completionData.testScore }),
-        ...(completionData.totalQuestions !== undefined && { totalQuestions: completionData.totalQuestions }),
-        ...(completionData.percentage !== undefined && { percentage: completionData.percentage }),
-        ...(completionData.passed !== undefined && { passed: completionData.passed }),
-        ...(completionData.rating !== undefined && { rating: completionData.rating }),
-        ...(completionData.feedback && { feedback: completionData.feedback })
-      };
-      
-      console.log('📤 Sending enrollment update:', updatePayload);
-      
-      const result = await apiCall(`/enrollments/${enrollmentId}/complete`, {
-        method: 'PUT',
-        body: JSON.stringify(updatePayload),
-      });
-      
-      console.log('✅ Enrollment updated successfully:', result);
-      return result;
-      
-    } catch (error) {
-      console.error('❌ completeCourse API Error:', error);
-      throw error;
-    }
   },
+
+  updateProgress: async (enrollmentId, progressData) => {
+    return apiCall(`/enrollments/${enrollmentId}/progress`, {
+      method: 'PUT',
+      body: JSON.stringify(progressData),
+    });
+  },
+
+  // DELETE operations
+  unenroll: async (enrollmentId) => {
+    return apiCall(`/enrollments/${enrollmentId}`, {
+      method: 'DELETE',
+    });
+  }
 };
 
-// ==================== RATING API ====================
+// ==================== RATING & REVIEWS API ====================
 export const ratingAPI = {
+  // CREATE operations
   rate: async (ratingData) => {
     return apiCall('/ratings', {
       method: 'POST',
@@ -416,6 +425,14 @@ export const ratingAPI = {
     });
   },
 
+  addReview: async (reviewData) => {
+    return apiCall('/ratings/review', {
+      method: 'POST',
+      body: JSON.stringify(reviewData),
+    });
+  },
+
+  // GET operations
   getCourseRatings: async (courseId) => {
     return apiCall(`/ratings/course/${courseId}`);
   },
@@ -423,79 +440,44 @@ export const ratingAPI = {
   getUserRating: async (userId, courseId) => {
     return apiCall(`/ratings/user/${userId}/course/${courseId}`);
   },
-};
 
-// ==================== TEST RESULTS API ====================
-export const testResultsAPI = {
-  // Save test results to MySQL
-  saveTestResult: async (testData) => {
-    console.log('💾 Saving test result to MySQL:', testData);
-    try {
-      const result = await apiCall('/test-results/save', {
-        method: 'POST',
-        body: JSON.stringify(testData),
-      });
-      console.log('✅ Test result saved to MySQL:', result);
-      return result;
-    } catch (error) {
-      console.error('❌ Failed to save test result to MySQL:', error);
-      throw error;
-    }
+  getRating: async (ratingId) => {
+    return apiCall(`/ratings/${ratingId}`);
   },
 
-  // Get test results by enrollment ID
-  getTestResultByEnrollment: async (enrollmentId) => {
-    console.log('📊 Fetching test result for enrollment:', enrollmentId);
-    try {
-      const result = await apiCall(`/test-results/enrollment/${enrollmentId}`);
-      console.log('✅ Test result fetched:', result);
-      return result;
-    } catch (error) {
-      console.error('❌ Failed to fetch test result:', error);
-      // Return null instead of throwing to allow graceful handling
-      return { success: false, testResult: null };
-    }
-  },
-
-  // Get all test results for a student
-  getTestResultsByStudent: async (studentId) => {
-    console.log('📊 Fetching all test results for student:', studentId);
-    return apiCall(`/test-results/student/${studentId}`);
-  },
-
-  // Check if student passed a course
-  checkCoursePassed: async (courseId, studentId) => {
-    console.log('✅ Checking if course passed:', { courseId, studentId });
-    return apiCall(`/test-results/check-passed/${courseId}/${studentId}`);
-  },
-
-  // ✅ ADD: Update test result
-  updateTestResult: async (testResultId, updateData) => {
-    console.log('🔄 Updating test result:', { testResultId, updateData });
-    return apiCall(`/test-results/${testResultId}`, {
+  // UPDATE operations
+  updateRating: async (ratingId, ratingData) => {
+    return apiCall(`/ratings/${ratingId}`, {
       method: 'PUT',
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(ratingData),
+    });
+  },
+
+  updateReview: async (ratingId, reviewData) => {
+    return apiCall(`/ratings/${ratingId}/review`, {
+      method: 'PUT',
+      body: JSON.stringify(reviewData),
+    });
+  },
+
+  // DELETE operations
+  deleteRating: async (ratingId) => {
+    return apiCall(`/ratings/${ratingId}`, {
+      method: 'DELETE',
     });
   }
 };
 
-// ==================== TEST API ====================
+// ==================== TEST & ASSESSMENT API ====================
 export const testAPI = {
-  // Use your actual getRandomQuestions function instead of mock
+  // GET operations
   getQuestions: async (courseId, count = 10) => {
-    console.log(`🎯 Getting ${count} random questions for course: ${courseId}`);
-    
     try {
-      // Dynamic import to avoid circular dependencies
       const { getRandomQuestions } = await import('../utils/questionUtils');
-      
-      const questions = getRandomQuestions(count);
-      console.log(`✅ Generated ${questions.length} random questions`);
-      return questions;
+      return getRandomQuestions(count);
     } catch (error) {
-      console.error('❌ Error generating random questions:', error);
-      
-      // Fallback to mock questions if import fails
+      console.error('Error generating random questions:', error);
+      // Fallback questions
       return [
         {
           id: 1,
@@ -513,30 +495,97 @@ export const testAPI = {
     }
   },
 
-  // Keep this for backward compatibility, but it's deprecated
-  submitTest: async (courseId, answers) => {
-    console.warn('⚠️ submitTest is deprecated - use testResultsAPI.saveTestResult instead');
-    
-    // Calculate score for mock response
-    const correctAnswers = Object.values(answers).filter((answer, index) => {
-      // This would need actual question data to calculate properly
-      return answer === 0; // Mock correct answer
-    }).length;
-    
+  getTestByCourse: async (courseId) => {
+    return apiCall(`/tests/course/${courseId}`);
+  },
+
+  getTest: async (testId) => {
+    return apiCall(`/tests/${testId}`);
+  },
+
+  // CREATE operations
+  createTest: async (testData) => {
+    return apiCall('/tests', {
+      method: 'POST',
+      body: JSON.stringify(testData),
+    });
+  },
+
+  submitTest: async (testId, answers) => {
+    return apiCall(`/tests/${testId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    });
+  },
+
+  // Deprecated - for backward compatibility
+  submitTestLegacy: async (courseId, answers) => {
+    const correctAnswers = Object.values(answers).filter((answer, index) => answer === 0).length;
     const totalQuestions = Object.keys(answers).length;
     const score = Math.round((correctAnswers / totalQuestions) * 100);
     
     return {
-      score: score,
-      totalQuestions: totalQuestions,
+      score,
+      totalQuestions,
       passed: score >= 60,
-      correctAnswers: correctAnswers
+      correctAnswers
     };
+  }
+};
+
+// ==================== TEST RESULTS API ====================
+export const testResultsAPI = {
+  // CREATE operations
+  saveTestResult: async (testData) => {
+    return apiCall('/test-results/save', {
+      method: 'POST',
+      body: JSON.stringify(testData),
+    });
   },
+
+  // GET operations
+  getTestResultByEnrollment: async (enrollmentId) => {
+    try {
+      return await apiCall(`/test-results/enrollment/${enrollmentId}`);
+    } catch (error) {
+      console.error('Failed to fetch test result:', error);
+      return { success: false, testResult: null };
+    }
+  },
+
+  getTestResultsByStudent: async (studentId) => {
+    return apiCall(`/test-results/student/${studentId}`);
+  },
+
+  getTestResultsByCourse: async (courseId) => {
+    return apiCall(`/test-results/course/${courseId}`);
+  },
+
+  getTestResult: async (resultId) => {
+    return apiCall(`/test-results/${resultId}`);
+  },
+
+  checkCoursePassed: async (courseId, studentId) => {
+    return apiCall(`/test-results/check-passed/${courseId}/${studentId}`);
+  },
+
+  // UPDATE operations
+  updateTestResult: async (testResultId, updateData) => {
+    return apiCall(`/test-results/${testResultId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  },
+
+  // Analytics
+  getTestStatistics: async (courseId) => {
+    return apiCall(`/test-results/statistics/course/${courseId}`);
+  }
 };
 
 // ==================== CERTIFICATE API ====================
 export const certificateAPI = {
+  // CREATE operations
   generate: async (certificateData) => {
     return apiCall('/certificates/generate', {
       method: 'POST',
@@ -544,6 +593,7 @@ export const certificateAPI = {
     });
   },
 
+  // GET operations
   getStudentCertificates: async (studentId) => {
     return apiCall(`/certificates/student/${studentId}`);
   },
@@ -552,20 +602,160 @@ export const certificateAPI = {
     return apiCall(`/certificates/enrollment/${enrollmentId}`);
   },
 
+  getById: async (certificateId) => {
+    return apiCall(`/certificates/${certificateId}`);
+  },
+
+  getAll: async () => {
+    return apiCall('/certificates');
+  },
+
+  // VALIDATION operations
   checkExists: async (enrollmentId) => {
     return apiCall(`/certificates/enrollment/${enrollmentId}/exists`);
   },
 
+  validate: async (certificateId) => {
+    return apiCall(`/certificates/${certificateId}/validate`);
+  },
+
+  // DOWNLOAD operations
   download: async (certificateId) => {
     return apiCall(`/certificates/${certificateId}/download`);
   },
 
-  getById: async (certificateId) => {
-    return apiCall(`/certificates/${certificateId}`);
-  },
+  downloadPDF: async (certificateId) => {
+    return apiCall(`/certificates/${certificateId}/download-pdf`);
+  }
 };
 
-// ==================== EXPORT ALL APIS ====================
+// ==================== CATEGORIES API ====================
+export const categoriesAPI = {
+  getAll: async () => {
+    return apiCall('/categories');
+  },
+
+  getById: async (categoryId) => {
+    return apiCall(`/categories/${categoryId}`);
+  },
+
+  create: async (categoryData) => {
+    return apiCall('/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  update: async (categoryId, categoryData) => {
+    return apiCall(`/categories/${categoryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  delete: async (categoryId) => {
+    return apiCall(`/categories/${categoryId}`, {
+      method: 'DELETE',
+    });
+  }
+};
+
+// ==================== NOTIFICATIONS API ====================
+export const notificationsAPI = {
+  getUserNotifications: async (userId) => {
+    return apiCall(`/notifications/user/${userId}`);
+  },
+
+  getUnreadCount: async (userId) => {
+    return apiCall(`/notifications/user/${userId}/unread-count`);
+  },
+
+  markAsRead: async (notificationId) => {
+    return apiCall(`/notifications/${notificationId}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  markAllAsRead: async (userId) => {
+    return apiCall(`/notifications/user/${userId}/mark-all-read`, {
+      method: 'PUT',
+    });
+  },
+
+  delete: async (notificationId) => {
+    return apiCall(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  create: async (notificationData) => {
+    return apiCall('/notifications', {
+      method: 'POST',
+      body: JSON.stringify(notificationData),
+    });
+  }
+};
+
+// ==================== FILE UPLOAD API ====================
+export const uploadAPI = {
+  uploadAvatar: async (userId, file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    return apiCall(`/upload/users/${userId}/avatar`, {
+      method: 'POST',
+      headers: {
+        // Let browser set Content-Type for FormData
+      },
+      body: formData,
+    });
+  },
+
+  uploadCourseImage: async (courseId, file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    return apiCall(`/upload/courses/${courseId}/image`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  uploadResource: async (courseId, file) => {
+    const formData = new FormData();
+    formData.append('resource', file);
+    
+    return apiCall(`/upload/courses/${courseId}/resources`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+};
+
+// ==================== DASHBOARD & ANALYTICS API ====================
+export const analyticsAPI = {
+  getDashboardStats: async () => {
+    return apiCall('/analytics/dashboard');
+  },
+
+  getInstructorStats: async (instructorId) => {
+    return apiCall(`/analytics/instructor/${instructorId}`);
+  },
+
+  getStudentProgress: async (studentId) => {
+    return apiCall(`/analytics/student/${studentId}/progress`);
+  },
+
+  getCourseAnalytics: async (courseId) => {
+    return apiCall(`/analytics/course/${courseId}`);
+  },
+
+  getRevenueStats: async (startDate, endDate) => {
+    return apiCall(`/analytics/revenue?start=${startDate}&end=${endDate}`);
+  }
+};
+
+// ==================== MAIN EXPORT ====================
 export default {
   auth: authAPI,
   users: usersAPI,
@@ -574,5 +764,9 @@ export default {
   test: testAPI,
   certificate: certificateAPI,
   testResults: testResultsAPI,
-  rating: ratingAPI
+  rating: ratingAPI,
+  categories: categoriesAPI,
+  notifications: notificationsAPI,
+  upload: uploadAPI,
+  analytics: analyticsAPI
 };
