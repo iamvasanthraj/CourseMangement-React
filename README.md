@@ -1,34 +1,34 @@
 # Project Documentation
 
 ## Signup Page
-![Signup Page](images/signup.png)
+<img src="images/signup.png" style="width:100%;" alt="Signup Page">
 
 ## Login Page
-![Login Page](images/login.png)
+<img src="images/login.png" style="width:100%;" alt="Login Page">
 
 ## Student Dashboard Page
-![Student Dashboard](images/student_dashboard.png)
+<img src="images/student_dashboard.png" style="width:100%;" alt="Student Dashboard">
 
 ## My Enrollments Page
-![My Enrollments](images/my_enrollments.png)
+<img src="images/my_enrollments.png" style="width:100%;" alt="My Enrollments">
 
 ## Student Profile Page
-![Student Profile](images/student_profile.png)
+<img src="images/student_profile.png" style="width:100%;" alt="Student Profile">
 
 ## Instructor Dashboard
-![Instructor Dashboard](images/instructor_dashboard.png)
+<img src="images/instructor_dashboard.png" style="width:100%;" alt="Instructor Dashboard">
 
 ## Instructor Courses
-![Instructor Courses](images/instructor_courses.png)
+<img src="images/instructor_courses.png" style="width:100%;" alt="Instructor Courses">
 
 ## Instructor Profile
-![Instructor Profile](images/instructor_profile.png)
+<img src="images/instructor_profile.png" style="width:100%;" alt="Instructor Profile">
 
 ## Test Page
-![Test Page](images/test_page.png)
+<img src="images/test_page.png" style="width:100%;" alt="Test Page">
 
 ## Test Result
-![Test Result](images/test_result.png)
+<img src="images/test_result.png" style="width:100%;" alt="Test Result">
 
 ## Certificate
-![Certificate](images/certificate.png)
+<img src="images/certificate.png" style="width:100%;" alt="Certificate">
